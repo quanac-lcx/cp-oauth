@@ -101,7 +101,7 @@ export async function exchangeCodeforcesAuthorizationCode(params: {
     redirectUri: string;
 }): Promise<{ token: CodeforcesTokenResponse; discovery: CodeforcesDiscoveryMetadata }> {
     const discovery = await getCodeforcesDiscoveryMetadata();
-    const body = new URLSearchParams({
+    const formBody = new URLSearchParams({
         grant_type: 'authorization_code',
         code: params.code,
         client_id: params.clientId,
@@ -109,11 +109,44 @@ export async function exchangeCodeforcesAuthorizationCode(params: {
         redirect_uri: params.redirectUri
     });
 
-    const token = await $fetch<CodeforcesTokenResponse>(discovery.token_endpoint, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: body.toString()
-    });
+    let rawData: unknown;
+    try {
+        const response = await $fetch.raw(discovery.token_endpoint, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+                accept: 'application/json, application/x-www-form-urlencoded, text/plain'
+            },
+            body: formBody.toString()
+        });
+        rawData = response._data;
+    } catch (error: unknown) {
+        const err = error as {
+            statusCode?: number;
+            data?: { error?: string; error_description?: string };
+            message?: string;
+        };
+        const detail = err.data?.error_description || err.data?.error || err.message || 'Unknown error';
+        throw createError({
+            statusCode: err.statusCode || 502,
+            message: `Codeforces token exchange failed: ${detail}`
+        });
+    }
+
+    let token: CodeforcesTokenResponse;
+    if (typeof rawData === 'string') {
+        const asQuery = new URLSearchParams(rawData);
+        token = {
+            access_token: asQuery.get('access_token') || '',
+            token_type: asQuery.get('token_type') || undefined,
+            expires_in: asQuery.get('expires_in') ? Number(asQuery.get('expires_in')) : undefined,
+            refresh_token: asQuery.get('refresh_token') || undefined,
+            scope: asQuery.get('scope') || undefined,
+            id_token: asQuery.get('id_token') || undefined
+        };
+    } else {
+        token = (rawData || {}) as CodeforcesTokenResponse;
+    }
 
     if (!token.access_token) {
         throw createError({

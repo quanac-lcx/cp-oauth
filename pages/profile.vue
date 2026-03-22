@@ -95,9 +95,57 @@
             </div>
             <p v-else class="profile__no-bindings">{{ $t('binding.no_accounts') }}</p>
 
-            <el-button size="small" @click="openBindDialog('luogu')">
+            <el-button size="small" :disabled="luoguLinked" @click="openBindDialog('luogu')">
                 {{ $t('binding.link_account') }} — {{ $t('binding.platforms.luogu') }}
             </el-button>
+            <el-button size="small" :disabled="codeforcesLinked" @click="handleBindCodeforcesOAuth">
+                {{ $t('binding.link_account') }} — {{ $t('binding.platforms.codeforces') }}
+            </el-button>
+
+            <div v-if="luoguLinked" class="profile__luogu-login">
+                <h3 class="profile__luogu-login-title">{{ $t('binding.luogu_login.title') }}</h3>
+                <p class="profile__luogu-login-desc">{{ $t('binding.luogu_login.desc') }}</p>
+                <p class="profile__luogu-login-note">
+                    {{ $t('binding.luogu_login.new_clipboard_notice') }}
+                </p>
+                <p class="profile__luogu-login-note">
+                    {{ $t('binding.luogu_login.refresh_notice') }}
+                </p>
+
+                <div class="profile__luogu-login-controls">
+                    <el-select v-model="luoguCredentialDuration" class="profile__luogu-login-select">
+                        <el-option
+                            v-for="option in luoguDurationOptions"
+                            :key="option"
+                            :value="option"
+                            :label="$t(`binding.luogu_login.duration.${option}`)"
+                        />
+                    </el-select>
+                    <el-button
+                        type="primary"
+                        :loading="luoguCredentialLoading"
+                        @click="handleCreateLuoguCredential"
+                    >
+                        {{
+                            luoguCredentialLoading
+                                ? $t('binding.luogu_login.creating')
+                                : $t('binding.luogu_login.create')
+                        }}
+                    </el-button>
+                </div>
+
+                <div v-if="luoguCredentialToken" class="profile__bind-code-value" @click="copyLuoguCredential">
+                    <code>{{ luoguCredentialToken }}</code>
+                    <el-icon><Copy /></el-icon>
+                </div>
+                <p v-if="luoguCredentialExpiresAt" class="profile__bind-code-hint">
+                    {{
+                        $t('binding.luogu_login.expires_at', {
+                            time: new Date(luoguCredentialExpiresAt).toLocaleString()
+                        })
+                    }}
+                </p>
+            </div>
 
             <!-- Bind Dialog -->
             <el-dialog
@@ -213,6 +261,10 @@
 import { ElMessage } from 'element-plus';
 import { Copy } from 'lucide-vue-next';
 import { buildLoginPath } from '~/utils/auth-redirect';
+import {
+    LUOGU_LOGIN_DURATION_OPTIONS,
+    type LuoguLoginDuration
+} from '~/utils/luogu-login-credential';
 import { isValidUsername, normalizeUsername } from '~/utils/username';
 
 type LocaleCode = 'en' | 'zh' | 'ja';
@@ -360,6 +412,15 @@ const bindUid = ref('');
 const bindCode = ref('');
 const bindCredential = ref('');
 const bindLoading = ref(false);
+const luoguCredentialLoading = ref(false);
+const luoguCredentialDuration = ref<LuoguLoginDuration>('7day');
+const luoguCredentialToken = ref('');
+const luoguCredentialExpiresAt = ref<number | null>(null);
+const luoguDurationOptions = LUOGU_LOGIN_DURATION_OPTIONS;
+const luoguLinked = computed(() => bindings.value.some(account => account.platform === 'luogu'));
+const codeforcesLinked = computed(() =>
+    bindings.value.some(account => account.platform === 'codeforces')
+);
 
 async function fetchBindings() {
     try {
@@ -419,6 +480,31 @@ async function handleVerify() {
     }
 }
 
+async function handleBindCodeforcesOAuth() {
+    if (codeforcesLinked.value) {
+        ElMessage.warning(
+            t('binding.already_linked_platform', {
+                platform: t('binding.platforms.codeforces')
+            })
+        );
+        return;
+    }
+
+    try {
+        const result = await $fetch<{ authorizationUrl: string }>('/api/auth/thirdparty/codeforces/start', {
+            headers: { Authorization: `Bearer ${token.value}` },
+            query: {
+                mode: 'bind',
+                redirect: '/profile'
+            }
+        });
+        await navigateTo(result.authorizationUrl, { external: true });
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('binding.verify_error'));
+    }
+}
+
 async function handleUnlink(platform: string) {
     try {
         await $fetch(`/api/account/bind/${platform}`, {
@@ -435,6 +521,38 @@ async function handleUnlink(platform: string) {
 
 function copyCode() {
     navigator.clipboard.writeText(bindCode.value);
+    ElMessage.success(t('binding.code_copied'));
+}
+
+async function handleCreateLuoguCredential() {
+    luoguCredentialLoading.value = true;
+    try {
+        const result = await $fetch<{ token: string; expiresAt: number }>(
+            '/api/account/luogu/login-credential',
+            {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token.value}` },
+                body: {
+                    duration: luoguCredentialDuration.value
+                }
+            }
+        );
+
+        luoguCredentialToken.value = result.token;
+        luoguCredentialExpiresAt.value = result.expiresAt;
+        navigator.clipboard.writeText(result.token);
+        ElMessage.success(t('binding.luogu_login.created_copied'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('binding.luogu_login.create_error'));
+    } finally {
+        luoguCredentialLoading.value = false;
+    }
+}
+
+function copyLuoguCredential() {
+    if (!luoguCredentialToken.value) return;
+    navigator.clipboard.writeText(luoguCredentialToken.value);
     ElMessage.success(t('binding.code_copied'));
 }
 </script>
@@ -627,6 +745,44 @@ function copyCode() {
         font-size: 12px;
         color: var(--text-muted);
         margin-top: 6px;
+    }
+
+    &__luogu-login {
+        margin-top: 16px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+    }
+
+    &__luogu-login-title {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+
+    &__luogu-login-desc {
+        margin: 0 0 12px;
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    &__luogu-login-note {
+        margin: 0 0 8px;
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+
+    &__luogu-login-controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: center;
+    }
+
+    &__luogu-login-select {
+        width: 160px;
     }
 }
 </style>

@@ -73,7 +73,11 @@ async function finishCodeforcesLogin() {
     }
 
     try {
-        const result = await $fetch<{ token: string; redirect?: string }>(
+        const result = await $fetch<{
+            mode?: 'login' | 'bind' | 'register';
+            token?: string;
+            redirect?: string;
+        }>(
             '/api/auth/thirdparty/codeforces/callback',
             {
                 method: 'POST',
@@ -83,7 +87,14 @@ async function finishCodeforcesLogin() {
                 }
             }
         );
-        useCookie('auth_token').value = result.token;
+
+        if (result.mode === 'bind') {
+            ElMessage.success(t('binding.codeforces_bind_success'));
+        }
+
+        if (result.token) {
+            useCookie('auth_token').value = result.token;
+        }
         await navigateTo(result.redirect || '/');
     } catch (e: unknown) {
         const err = e as { data?: { message?: string } };
@@ -94,7 +105,9 @@ async function finishCodeforcesLogin() {
     }
 }
 
-await finishCodeforcesLogin();
+onMounted(() => {
+    void finishCodeforcesLogin();
+});
 </script>
 
 <style scoped lang="scss">

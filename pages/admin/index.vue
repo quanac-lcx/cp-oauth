@@ -1,7 +1,7 @@
 <template>
     <div class="admin">
         <h1 class="admin__title">{{ $t('admin.title') }}</h1>
-        <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+        <el-tabs v-model="activeTab" @tab-change="handleTabChange">
             <el-tab-pane :label="$t('admin.users.tab')" name="users" />
             <el-tab-pane :label="$t('admin.config.tab')" name="config" />
         </el-tabs>
@@ -95,8 +95,8 @@ const total = ref(0);
 const tableLoading = ref(false);
 const totalPages = computed(() => Math.ceil(total.value / 20) || 1);
 
-function handleTabClick() {
-    if (activeTab.value === 'config') {
+function handleTabChange(name: string | number) {
+    if (name === 'config') {
         navigateTo('/admin/config');
     }
 }

@@ -1,23 +1,8 @@
 import { consola } from 'consola';
 import type { PlatformVerifier, VerifyResult } from './types';
+import { fetchLuoguPaste } from '~/server/utils/luogu-paste';
 
 const logger = consola.withTag('platform:luogu');
-const LUOGU_USER_AGENT = 'Mozilla/5.0 (compatible; CPOAuth/1.0)';
-
-interface LuoguPasteResponse {
-    code: number;
-    currentData: {
-        paste: {
-            data: string;
-            id: string;
-            public: boolean;
-            user: {
-                uid: number;
-                name: string;
-            };
-        };
-    };
-}
 
 export const luoguVerifier: PlatformVerifier = {
     platform: 'luogu',
@@ -26,69 +11,53 @@ export const luoguVerifier: PlatformVerifier = {
     async verify({ platformUid, code, credential }): Promise<VerifyResult> {
         const pasteId = credential.trim();
         if (!pasteId) {
-            return { success: false, platformUid, error: 'Paste ID is required' };
+            return { success: false, platformUid, error: 'Clipboard ID is required' };
         }
 
-        logger.info(`Verifying paste ${pasteId} for uid=${platformUid}`);
+        logger.info(`Verifying clipboard ${pasteId} for uid=${platformUid}`);
 
         try {
-            const res = await $fetch<LuoguPasteResponse>(`https://www.luogu.com/paste/${pasteId}`, {
-                headers: {
-                    'user-agent': LUOGU_USER_AGENT,
-                    'x-luogu-type': 'content-only'
-                }
-            });
-
-            const paste = res.currentData?.paste;
+            const paste = await fetchLuoguPaste(pasteId);
             if (!paste) {
-                logger.warn(`Paste ${pasteId} not found`);
-                return { success: false, platformUid, error: 'Paste not found' };
+                logger.warn(`Clipboard ${pasteId} not found`);
+                return { success: false, platformUid, error: 'Clipboard not found' };
             }
 
-            if (!paste.public) {
-                logger.warn(`Paste ${pasteId} is not public`);
-                return { success: false, platformUid, error: 'Paste is not public' };
+            if (!paste.isPublic) {
+                logger.warn(`Clipboard ${pasteId} is not public`);
+                return { success: false, platformUid, error: 'Clipboard is not public' };
             }
 
-            const pasteOwnerUid = String(paste.user.uid);
+            const pasteOwnerUid = paste.ownerUid;
             if (pasteOwnerUid !== String(platformUid)) {
                 logger.warn(
-                    `Paste owner mismatch: expected uid=${platformUid}, got uid=${pasteOwnerUid}`
+                    `Clipboard owner mismatch: expected uid=${platformUid}, got uid=${pasteOwnerUid}`
                 );
                 return {
                     success: false,
                     platformUid,
-                    error: 'Paste owner does not match the claimed UID'
+                    error: 'Clipboard owner does not match the claimed UID'
                 };
             }
 
             if (!paste.data.includes(code)) {
-                logger.warn(`Verification code not found in paste ${pasteId}`);
+                logger.warn(`Verification code not found in clipboard ${pasteId}`);
                 return {
                     success: false,
                     platformUid,
-                    error: 'Verification code not found in paste'
+                    error: 'Verification code not found in clipboard'
                 };
             }
 
-            logger.success(`Verified: uid=${pasteOwnerUid}, username=${paste.user.name}`);
+            logger.success(`Verified: uid=${pasteOwnerUid}, username=${paste.ownerUsername}`);
             return {
                 success: true,
                 platformUid: pasteOwnerUid,
-                platformUsername: paste.user.name
+                platformUsername: paste.ownerUsername
             };
         } catch (e: unknown) {
-            const err = e as { statusCode?: number; data?: unknown };
-            if (err.statusCode === 404) {
-                logger.warn(`Paste ${pasteId} not found (404)`);
-                return { success: false, platformUid, error: 'Paste not found' };
-            }
-            logger.error(`Failed to fetch paste ${pasteId}:`, e);
-            return {
-                success: false,
-                platformUid,
-                error: 'Failed to fetch paste from Luogu'
-            };
+            const err = e as { statusCode?: number; message?: string };
+            return { success: false, platformUid, error: err.message || 'Verification failed' };
         }
     }
 };

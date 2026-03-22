@@ -48,14 +48,24 @@
             </el-form-item>
         </el-form>
 
-        <div v-if="codeforcesLoginEnabled" class="login-card__oauth">
+        <div class="login-card__oauth">
             <el-divider>{{ $t('auth.login.oauth_divider') }}</el-divider>
             <el-button
+                v-if="codeforcesLoginEnabled"
                 class="login-card__oauth-btn"
                 :loading="codeforcesLoading"
                 @click="handleCodeforcesLogin"
             >
-                {{ $t('auth.login.with_codeforces') }}
+                <span class="login-card__oauth-btn-content">
+                    <AppPlatformIcon platform="codeforces" />
+                    <span>{{ $t('auth.login.with_codeforces') }}</span>
+                </span>
+            </el-button>
+            <el-button class="login-card__oauth-btn" @click="handleLuoguGuideLogin">
+                <span class="login-card__oauth-btn-content">
+                    <AppPlatformIcon platform="luogu" />
+                    <span>{{ $t('auth.login.with_luogu') }}</span>
+                </span>
             </el-button>
         </div>
 
@@ -139,7 +149,8 @@ async function handleCodeforcesLogin() {
             '/api/auth/thirdparty/codeforces/start',
             {
                 query: {
-                    redirect: redirectTarget.value
+                    redirect: redirectTarget.value,
+                    turnstileToken: turnstileToken.value || ''
                 }
             }
         );
@@ -150,6 +161,15 @@ async function handleCodeforcesLogin() {
     } finally {
         codeforcesLoading.value = false;
     }
+}
+
+async function handleLuoguGuideLogin() {
+    await navigateTo({
+        path: '/oauth/thirdparty/luogu',
+        query: {
+            redirect: redirectTarget.value
+        }
+    });
 }
 </script>
 
@@ -190,10 +210,21 @@ async function handleCodeforcesLogin() {
 
     &__oauth {
         margin-bottom: 8px;
+
+        :deep(.el-button + .el-button) {
+            margin-left: 0;
+        }
     }
 
     &__oauth-btn {
         width: 100%;
+        margin-top: 8px;
+    }
+
+    &__oauth-btn-content {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     &__footer {

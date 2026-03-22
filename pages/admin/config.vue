@@ -1,7 +1,7 @@
 <template>
     <div class="admin">
         <h1 class="admin__title">{{ $t('admin.title') }}</h1>
-        <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+        <el-tabs v-model="activeTab" @tab-change="handleTabChange">
             <el-tab-pane :label="$t('admin.users.tab')" name="users" />
             <el-tab-pane :label="$t('admin.config.tab')" name="config" />
         </el-tabs>
@@ -102,8 +102,8 @@ const form = reactive({
     codeforces_client_secret: ''
 });
 
-function handleTabClick() {
-    if (activeTab.value === 'users') {
+function handleTabChange(name: string | number) {
+    if (name === 'users') {
         navigateTo('/admin');
     }
 }

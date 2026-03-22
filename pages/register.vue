@@ -46,6 +46,81 @@
                 </el-button>
             </el-form-item>
         </el-form>
+
+        <div class="login-card__oauth">
+            <el-divider>{{ $t('auth.login.oauth_divider') }}</el-divider>
+            <p v-if="turnstileEnabled && !thirdPartyCaptchaReady" class="login-card__oauth-hint">
+                {{ $t('auth.register.turnstile_required_for_thirdparty') }}
+            </p>
+            <el-button
+                v-if="codeforcesLoginEnabled"
+                class="login-card__oauth-btn"
+                :loading="codeforcesLoading"
+                :disabled="!thirdPartyCaptchaReady"
+                @click="handleCodeforcesRegister"
+            >
+                <span class="login-card__oauth-btn-content">
+                    <AppPlatformIcon platform="codeforces" />
+                    <span>{{ $t('auth.register.with_codeforces') }}</span>
+                </span>
+            </el-button>
+            <el-button
+                class="login-card__oauth-btn"
+                :loading="luoguDialogLoading"
+                :disabled="!thirdPartyCaptchaReady"
+                @click="openLuoguDialog"
+            >
+                <span class="login-card__oauth-btn-content">
+                    <AppPlatformIcon platform="luogu" />
+                    <span>{{ $t('auth.register.with_luogu') }}</span>
+                </span>
+            </el-button>
+        </div>
+
+        <el-dialog
+            v-model="luoguDialogVisible"
+            :title="$t('auth.register.with_luogu')"
+            width="480px"
+            :close-on-click-modal="false"
+        >
+            <div v-if="luoguRegisterStep === 1">
+                <p class="login-card__luogu-tip">{{ $t('auth.register.luogu_step1') }}</p>
+                <el-input v-model="luoguUid" :placeholder="$t('binding.uid_placeholder')" />
+                <div class="login-card__luogu-actions">
+                    <el-button
+                        type="primary"
+                        :loading="luoguDialogLoading"
+                        :disabled="!luoguUid.trim() || !thirdPartyCaptchaReady"
+                        @click="handleLuoguRegisterRequest"
+                    >
+                        {{ $t('binding.get_code') }}
+                    </el-button>
+                </div>
+            </div>
+
+            <div v-else>
+                <p class="login-card__luogu-tip">{{ $t('auth.register.luogu_step2') }}</p>
+                <div class="login-card__luogu-code" @click="copyLuoguCode">
+                    <code>{{ luoguCode }}</code>
+                </div>
+                <el-input
+                    v-model="luoguCredential"
+                    :placeholder="$t('binding.paste_id_placeholder')"
+                    class="login-card__luogu-input"
+                />
+                <div class="login-card__luogu-actions">
+                    <el-button
+                        type="primary"
+                        :loading="luoguDialogLoading"
+                        :disabled="!luoguCredential.trim()"
+                        @click="handleLuoguRegisterVerify"
+                    >
+                        {{ $t('binding.verify') }}
+                    </el-button>
+                </div>
+            </div>
+        </el-dialog>
+
         <p class="login-card__footer">
             {{ $t('auth.register.footer') }}
             <NuxtLink to="/login">{{ $t('auth.register.login_link') }}</NuxtLink>
@@ -62,9 +137,24 @@ definePageMeta({ layout: 'auth' });
 
 const { t } = useI18n();
 
+interface PublicConfigResponse {
+    siteTitle?: string;
+    turnstileEnabled?: boolean;
+    turnstileSiteKey?: string;
+    codeforcesLoginEnabled?: boolean;
+}
+
 useHead({ title: () => `${t('auth.register.title')} - CP OAuth` });
 const formRef = ref<FormInstance>();
 const loading = ref(false);
+const codeforcesLoading = ref(false);
+const luoguDialogVisible = ref(false);
+const luoguDialogLoading = ref(false);
+const luoguRegisterStep = ref(1);
+const luoguUid = ref('');
+const luoguCode = ref('');
+const luoguRequestId = ref('');
+const luoguCredential = ref('');
 
 const form = reactive({
     username: '',
@@ -90,11 +180,13 @@ const rules = computed<FormRules>(() => ({
     password: [{ required: true, message: t('auth.register.password'), trigger: 'blur' }]
 }));
 
-const { data: publicConfig } = await useFetch('/api/public/config');
+const { data: publicConfig } = await useFetch<PublicConfigResponse>('/api/public/config');
 const siteTitle = computed(() => publicConfig.value?.siteTitle || t('app.name'));
 const turnstileEnabled = computed(() => publicConfig.value?.turnstileEnabled || false);
 const turnstileSiteKey = computed(() => publicConfig.value?.turnstileSiteKey || '');
+const codeforcesLoginEnabled = computed(() => publicConfig.value?.codeforcesLoginEnabled || false);
 const { token: turnstileToken, el: turnstileEl } = useTurnstile(turnstileSiteKey);
+const thirdPartyCaptchaReady = computed(() => !turnstileEnabled.value || Boolean(turnstileToken.value));
 
 async function handleRegister() {
     if (!formRef.value) return;
@@ -120,6 +212,81 @@ async function handleRegister() {
     } finally {
         loading.value = false;
     }
+}
+
+async function handleCodeforcesRegister() {
+    codeforcesLoading.value = true;
+    try {
+        const result = await $fetch<{ authorizationUrl: string }>('/api/auth/thirdparty/codeforces/start', {
+            query: {
+                mode: 'register',
+                redirect: '/',
+                turnstileToken: turnstileToken.value || ''
+            }
+        });
+        await navigateTo(result.authorizationUrl, { external: true });
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('auth.register.error'));
+    } finally {
+        codeforcesLoading.value = false;
+    }
+}
+
+function openLuoguDialog() {
+    luoguRegisterStep.value = 1;
+    luoguUid.value = '';
+    luoguCode.value = '';
+    luoguRequestId.value = '';
+    luoguCredential.value = '';
+    luoguDialogVisible.value = true;
+}
+
+async function handleLuoguRegisterRequest() {
+    luoguDialogLoading.value = true;
+    try {
+        const result = await $fetch<{ requestId: string; code: string }>('/api/auth/thirdparty/luogu/register/request', {
+            method: 'POST',
+            body: {
+                platformUid: luoguUid.value.trim(),
+                turnstileToken: turnstileToken.value || ''
+            }
+        });
+        luoguRequestId.value = result.requestId;
+        luoguCode.value = result.code;
+        luoguRegisterStep.value = 2;
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('auth.register.error'));
+    } finally {
+        luoguDialogLoading.value = false;
+    }
+}
+
+async function handleLuoguRegisterVerify() {
+    luoguDialogLoading.value = true;
+    try {
+        const result = await $fetch<{ token: string }>('/api/auth/thirdparty/luogu/register/verify', {
+            method: 'POST',
+            body: {
+                requestId: luoguRequestId.value,
+                credential: luoguCredential.value.trim()
+            }
+        });
+        useCookie('auth_token').value = result.token;
+        luoguDialogVisible.value = false;
+        await navigateTo('/');
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('auth.register.error'));
+    } finally {
+        luoguDialogLoading.value = false;
+    }
+}
+
+function copyLuoguCode() {
+    navigator.clipboard.writeText(luoguCode.value);
+    ElMessage.success(t('binding.code_copied'));
 }
 </script>
 
@@ -152,6 +319,63 @@ async function handleRegister() {
 
     &__btn {
         width: 100%;
+    }
+
+    &__oauth {
+        margin-bottom: 8px;
+
+        :deep(.el-button + .el-button) {
+            margin-left: 0;
+        }
+    }
+
+    &__oauth-btn {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    &__oauth-btn-content {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__oauth-hint {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+
+    &__luogu-tip {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+
+    &__luogu-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    &__luogu-input {
+        margin-top: 10px;
+    }
+
+    &__luogu-code {
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        cursor: pointer;
+
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            font-weight: 600;
+        }
     }
 
     &__footer {
