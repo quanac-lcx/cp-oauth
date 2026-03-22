@@ -39,6 +39,9 @@
                 <el-form-item :label="$t('profile.display_name')">
                     <el-input v-model="form.displayName" />
                 </el-form-item>
+                <el-form-item :label="$t('profile.username')">
+                    <el-input v-model="form.username" :placeholder="$t('profile.username_hint')" />
+                </el-form-item>
                 <el-form-item :label="$t('profile.bio')">
                     <el-input v-model="form.bio" type="textarea" :rows="3" />
                 </el-form-item>
@@ -209,6 +212,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { Copy } from 'lucide-vue-next';
+import { isValidUsername, normalizeUsername } from '~/utils/username';
 
 type LocaleCode = 'en' | 'zh' | 'ja';
 const localeCodes: LocaleCode[] = ['en', 'zh', 'ja'];
@@ -242,6 +246,7 @@ const { data: userData, pending } = await useFetch<ProfileData>('/api/auth/me', 
 });
 
 const d = userData.value;
+const originalUsername = ref(d?.username || '');
 const form = reactive({
     displayName: d?.displayName || '',
     username: d?.username || '',
@@ -256,18 +261,33 @@ if (d?.locale && isLocaleCode(d.locale) && d.locale !== locale.value) {
 }
 
 async function handleSave() {
+    const body: Record<string, string> = {
+        displayName: form.displayName,
+        bio: form.bio,
+        homepage: form.homepage,
+        avatarUrl: form.avatarUrl
+    };
+
+    const trimmedUsername = normalizeUsername(form.username);
+    if (trimmedUsername !== originalUsername.value) {
+        if (!isValidUsername(trimmedUsername)) {
+            ElMessage.error(t('profile.username_invalid'));
+            return;
+        }
+        body.username = trimmedUsername;
+    }
+
     saving.value = true;
     try {
         await $fetch('/api/auth/me', {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${token.value}` },
-            body: {
-                displayName: form.displayName,
-                bio: form.bio,
-                homepage: form.homepage,
-                avatarUrl: form.avatarUrl
-            }
+            body
         });
+        if (body.username) {
+            originalUsername.value = body.username;
+            form.username = body.username;
+        }
         ElMessage.success(t('profile.updated'));
     } catch (e: unknown) {
         const err = e as { data?: { message?: string } };

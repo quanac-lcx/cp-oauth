@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
+import { isValidUsername, normalizeUsername } from '~/utils/username';
 
 definePageMeta({ layout: 'auth' });
 
@@ -72,7 +73,19 @@ const form = reactive({
 });
 
 const rules = computed<FormRules>(() => ({
-    username: [{ required: true, message: t('auth.register.username'), trigger: 'blur' }],
+    username: [
+        { required: true, message: t('auth.register.username'), trigger: 'blur' },
+        {
+            validator: (_rule, value: string, callback) => {
+                if (!isValidUsername(normalizeUsername(value))) {
+                    callback(new Error(t('profile.username_invalid')));
+                    return;
+                }
+                callback();
+            },
+            trigger: 'blur'
+        }
+    ],
     email: [{ required: true, message: t('auth.register.email'), trigger: 'blur' }],
     password: [{ required: true, message: t('auth.register.password'), trigger: 'blur' }]
 }));
@@ -93,7 +106,7 @@ async function handleRegister() {
         const data = await $fetch('/api/auth/register', {
             method: 'POST',
             body: {
-                username: form.username,
+                username: normalizeUsername(form.username),
                 email: form.email,
                 password: form.password,
                 turnstileToken: turnstileToken.value || undefined
