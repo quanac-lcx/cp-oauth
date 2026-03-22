@@ -162,6 +162,8 @@ async function handleLogin() {
     }
 
     &__turnstile {
+        display: flex;
+        justify-content: center;
         margin: 4px 0 16px;
     }
 

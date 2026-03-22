@@ -20,7 +20,21 @@
             <template #header>
                 <span class="user-profile__section-title">{{ $t('user.linked_accounts') }}</span>
             </template>
-            <el-empty :description="$t('user.no_linked')" :image-size="60" />
+            <div v-if="user.linkedAccounts && user.linkedAccounts.length">
+                <div
+                    v-for="account in user.linkedAccounts"
+                    :key="account.platform"
+                    class="user-profile__linked-item"
+                >
+                    <span class="user-profile__linked-platform">{{
+                        $t(`binding.platforms.${account.platform}`)
+                    }}</span>
+                    <span class="user-profile__linked-uid">
+                        {{ account.platformUsername || account.platformUid }}
+                    </span>
+                </div>
+            </div>
+            <el-empty v-else :description="$t('user.no_linked')" :image-size="60" />
         </el-card>
 
         <!-- Homepage (Markdown) -->
@@ -52,6 +66,11 @@ interface UserProfile {
     homepage: string | null;
     avatarUrl: string | null;
     createdAt: string;
+    linkedAccounts?: {
+        platform: string;
+        platformUid: string;
+        platformUsername: string | null;
+    }[];
 }
 
 const { data: user, error } = await useFetch<UserProfile>(`/api/users/${username}`);
@@ -139,6 +158,29 @@ await render();
 
     &__loading {
         min-height: 200px;
+    }
+
+    &__linked-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+
+        & + & {
+            border-top: 1px solid var(--border-color);
+        }
+    }
+
+    &__linked-platform {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        min-width: 60px;
+    }
+
+    &__linked-uid {
+        font-size: 13px;
+        color: var(--text-secondary);
     }
 
     &__markdown {

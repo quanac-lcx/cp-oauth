@@ -56,6 +56,19 @@ export default defineEventHandler(async event => {
         response.bio = user.bio;
     }
 
+    // cp:linked — linked platform accounts
+    if (scopes.includes('cp:linked')) {
+        const linked = await prisma.linkedAccount.findMany({
+            where: { userId: user.id },
+            select: {
+                platform: true,
+                platformUid: true,
+                platformUsername: true
+            }
+        });
+        response.linked_accounts = linked;
+    }
+
     // cp:summary — placeholder for aggregated CP stats
     if (scopes.includes('cp:summary')) {
         response.cp_summary = {

@@ -31,6 +31,22 @@ export default defineNuxtConfig({
         storageKey: 'cp-oauth-color-mode'
     },
     vite: {
+        optimizeDeps: {
+            include: [
+                'dayjs',
+                'dayjs/plugin/*.js',
+                'lodash-unified',
+                '@vue/devtools-core',
+                '@vue/devtools-kit',
+                'lucide-vue-next',
+                'unified',
+                'remark-parse',
+                'remark-gfm',
+                'remark-rehype',
+                'rehype-stringify',
+                '@shikijs/rehype'
+            ]
+        },
         css: {
             preprocessorOptions: {
                 scss: {

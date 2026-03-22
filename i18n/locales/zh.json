@@ -66,6 +66,36 @@
         "no_linked": "尚未关联任何竞赛编程账号。",
         "homepage": "个人主页"
     },
+    "binding": {
+        "title": "关联账号",
+        "link_account": "关联账号",
+        "unlink": "解绑",
+        "unlink_confirm": "确定要解除关联此账号吗？",
+        "unlink_success": "已解除关联",
+        "unlink_error": "解绑失败",
+        "no_accounts": "暂未关联任何账号。",
+        "platform": "平台",
+        "platform_uid": "平台 UID",
+        "dialog_title": "关联 {platform} 账号",
+        "step1_title": "输入你的 {platform} UID",
+        "step1_desc": "输入你在 {platform} 上的用户 ID。",
+        "uid_placeholder": "例如 123456",
+        "get_code": "获取验证码",
+        "getting_code": "生成中...",
+        "step2_title": "验证所有权",
+        "step2_desc": "在 {platform} 上创建一个包含以下验证码的公开剪贴板，然后输入剪贴板 ID。",
+        "code_label": "验证码",
+        "code_copied": "已复制到剪贴板",
+        "code_expires": "验证码将在 {minutes} 分钟后过期。",
+        "paste_id_placeholder": "例如 abc123de",
+        "verify": "验证",
+        "verifying": "验证中...",
+        "verify_success": "账号关联成功！",
+        "verify_error": "验证失败",
+        "platforms": {
+            "luogu": "洛谷"
+        }
+    },
     "settings": {
         "title": "设置",
         "theme": {
@@ -94,6 +124,7 @@
         "scopes": {
             "openid": "基本身份 — 您的用户 ID",
             "profile": "个人资料 — 用户名、头像和简介",
+            "cp_linked": "关联账号 — 您关联的竞赛编程平台账号",
             "cp_summary": "竞赛概要 — 汇总的竞赛编程统计数据",
             "cp_details": "竞赛详情 — 完整的提交记录和评级趋势"
         }
@@ -140,6 +171,7 @@
             "data_col": "返回的数据",
             "openid": "用户 ID（sub 声明）",
             "profile": "用户名、显示名称、头像链接和个人简介",
+            "cp_linked": "关联的竞赛编程平台账号（平台、UID、用户名）",
             "cp_summary": "关联的 OJ 账号、解题总数、最高评级",
             "cp_details": "完整的提交记录和评级趋势数据"
         },

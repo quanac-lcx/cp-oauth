@@ -61,6 +61,117 @@
                 </el-form-item>
             </el-form>
 
+            <!-- Linked Accounts section -->
+            <el-divider />
+            <h2 class="profile__section-title">{{ $t('binding.title') }}</h2>
+
+            <div v-if="bindings.length" class="profile__bindings">
+                <div v-for="account in bindings" :key="account.id" class="profile__binding-item">
+                    <div class="profile__binding-info">
+                        <span class="profile__binding-platform">{{
+                            $t(`binding.platforms.${account.platform}`)
+                        }}</span>
+                        <span class="profile__binding-uid">
+                            {{ account.platformUsername || account.platformUid }}
+                            <span v-if="account.platformUsername" class="profile__binding-uid-hint">
+                                (UID: {{ account.platformUid }})
+                            </span>
+                        </span>
+                    </div>
+                    <el-popconfirm
+                        :title="$t('binding.unlink_confirm')"
+                        @confirm="handleUnlink(account.platform)"
+                    >
+                        <template #reference>
+                            <el-button size="small" type="danger" text>{{
+                                $t('binding.unlink')
+                            }}</el-button>
+                        </template>
+                    </el-popconfirm>
+                </div>
+            </div>
+            <p v-else class="profile__no-bindings">{{ $t('binding.no_accounts') }}</p>
+
+            <el-button size="small" @click="openBindDialog('luogu')">
+                {{ $t('binding.link_account') }} — {{ $t('binding.platforms.luogu') }}
+            </el-button>
+
+            <!-- Bind Dialog -->
+            <el-dialog
+                v-model="bindDialogVisible"
+                :title="
+                    $t('binding.dialog_title', {
+                        platform: $t(`binding.platforms.${bindPlatform}`)
+                    })
+                "
+                width="480px"
+                :close-on-click-modal="false"
+            >
+                <!-- Step 1: Enter UID -->
+                <div v-if="bindStep === 1">
+                    <p class="profile__bind-desc">
+                        {{
+                            $t('binding.step1_desc', {
+                                platform: $t(`binding.platforms.${bindPlatform}`)
+                            })
+                        }}
+                    </p>
+                    <el-input
+                        v-model="bindUid"
+                        :placeholder="$t('binding.uid_placeholder')"
+                        class="profile__bind-input"
+                    />
+                    <div class="profile__bind-actions">
+                        <el-button
+                            type="primary"
+                            :loading="bindLoading"
+                            :disabled="!bindUid.trim()"
+                            @click="handleRequestCode"
+                        >
+                            {{ bindLoading ? $t('binding.getting_code') : $t('binding.get_code') }}
+                        </el-button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Verify -->
+                <div v-if="bindStep === 2">
+                    <p class="profile__bind-desc">
+                        {{
+                            $t('binding.step2_desc', {
+                                platform: $t(`binding.platforms.${bindPlatform}`)
+                            })
+                        }}
+                    </p>
+                    <div class="profile__bind-code">
+                        <label class="profile__bind-code-label">{{
+                            $t('binding.code_label')
+                        }}</label>
+                        <div class="profile__bind-code-value" @click="copyCode">
+                            <code>{{ bindCode }}</code>
+                            <el-icon><Copy /></el-icon>
+                        </div>
+                        <p class="profile__bind-code-hint">
+                            {{ $t('binding.code_expires', { minutes: 10 }) }}
+                        </p>
+                    </div>
+                    <el-input
+                        v-model="bindCredential"
+                        :placeholder="$t('binding.paste_id_placeholder')"
+                        class="profile__bind-input"
+                    />
+                    <div class="profile__bind-actions">
+                        <el-button
+                            type="primary"
+                            :loading="bindLoading"
+                            :disabled="!bindCredential.trim()"
+                            @click="handleVerify"
+                        >
+                            {{ bindLoading ? $t('binding.verifying') : $t('binding.verify') }}
+                        </el-button>
+                    </div>
+                </div>
+            </el-dialog>
+
             <!-- Settings section -->
             <el-divider />
             <h2 class="profile__section-title">{{ $t('settings.title') }}</h2>
@@ -97,6 +208,7 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
+import { Copy } from 'lucide-vue-next';
 
 type LocaleCode = 'en' | 'zh' | 'ja';
 const localeCodes: LocaleCode[] = ['en', 'zh', 'ja'];
@@ -206,6 +318,101 @@ const localeOptions = computed(() => [
     { code: 'zh', label: t('settings.language.zh'), disabled: false },
     { code: 'ja', label: t('settings.language.ja'), disabled: false }
 ]);
+
+// --- Linked Accounts ---
+interface LinkedAccount {
+    id: string;
+    platform: string;
+    platformUid: string;
+    platformUsername: string | null;
+    verifiedAt: string;
+}
+
+const bindings = ref<LinkedAccount[]>([]);
+const bindDialogVisible = ref(false);
+const bindPlatform = ref('luogu');
+const bindStep = ref(1);
+const bindUid = ref('');
+const bindCode = ref('');
+const bindCredential = ref('');
+const bindLoading = ref(false);
+
+async function fetchBindings() {
+    try {
+        bindings.value = await $fetch<LinkedAccount[]>('/api/account/bindings', {
+            headers: { Authorization: `Bearer ${token.value}` }
+        });
+    } catch {
+        // silent
+    }
+}
+
+fetchBindings();
+
+function openBindDialog(platform: string) {
+    bindPlatform.value = platform;
+    bindStep.value = 1;
+    bindUid.value = '';
+    bindCode.value = '';
+    bindCredential.value = '';
+    bindDialogVisible.value = true;
+}
+
+async function handleRequestCode() {
+    bindLoading.value = true;
+    try {
+        const data = await $fetch<{ code: string }>('/api/account/bind/request', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            body: { platform: bindPlatform.value, platformUid: bindUid.value.trim() }
+        });
+        bindCode.value = data.code;
+        bindStep.value = 2;
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('binding.verify_error'));
+    } finally {
+        bindLoading.value = false;
+    }
+}
+
+async function handleVerify() {
+    bindLoading.value = true;
+    try {
+        await $fetch('/api/account/bind/verify', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            body: { platform: bindPlatform.value, credential: bindCredential.value.trim() }
+        });
+        ElMessage.success(t('binding.verify_success'));
+        bindDialogVisible.value = false;
+        await fetchBindings();
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('binding.verify_error'));
+    } finally {
+        bindLoading.value = false;
+    }
+}
+
+async function handleUnlink(platform: string) {
+    try {
+        await $fetch(`/api/account/bind/${platform}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token.value}` }
+        });
+        ElMessage.success(t('binding.unlink_success'));
+        await fetchBindings();
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('binding.unlink_error'));
+    }
+}
+
+function copyCode() {
+    navigator.clipboard.writeText(bindCode.value);
+    ElMessage.success(t('binding.code_copied'));
+}
 </script>
 
 <style scoped lang="scss">
@@ -296,6 +503,106 @@ const localeOptions = computed(() => [
         color: var(--text-secondary);
         font-weight: 500;
         margin-bottom: 10px;
+    }
+
+    &__bindings {
+        margin-bottom: 16px;
+    }
+
+    &__binding-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
+
+    &__binding-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__binding-platform {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    &__binding-uid {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    &__binding-uid-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    &__no-bindings {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+    }
+
+    &__bind-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        line-height: 1.6;
+    }
+
+    &__bind-input {
+        margin-bottom: 16px;
+    }
+
+    &__bind-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    &__bind-code {
+        margin-bottom: 16px;
+    }
+
+    &__bind-code-label {
+        display: block;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    &__bind-code-value {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+
+        &:hover {
+            border-color: var(--text-muted);
+        }
+
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+        }
+    }
+
+    &__bind-code-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
     }
 }
 </style>

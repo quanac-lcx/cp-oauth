@@ -15,7 +15,15 @@ export default defineEventHandler(async event => {
             bio: true,
             homepage: true,
             avatarUrl: true,
-            createdAt: true
+            createdAt: true,
+            linkedAccounts: {
+                select: {
+                    platform: true,
+                    platformUid: true,
+                    platformUsername: true
+                },
+                orderBy: { createdAt: 'asc' }
+            }
         }
     });
 

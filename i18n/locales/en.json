@@ -66,6 +66,36 @@
         "no_linked": "No competitive programming accounts linked yet.",
         "homepage": "Homepage"
     },
+    "binding": {
+        "title": "Linked Accounts",
+        "link_account": "Link Account",
+        "unlink": "Unlink",
+        "unlink_confirm": "Are you sure you want to unlink this account?",
+        "unlink_success": "Account unlinked",
+        "unlink_error": "Failed to unlink account",
+        "no_accounts": "No accounts linked yet.",
+        "platform": "Platform",
+        "platform_uid": "Platform UID",
+        "dialog_title": "Link {platform} Account",
+        "step1_title": "Enter your {platform} UID",
+        "step1_desc": "Enter your user ID on {platform}.",
+        "uid_placeholder": "e.g. 123456",
+        "get_code": "Get Verification Code",
+        "getting_code": "Generating...",
+        "step2_title": "Verify Ownership",
+        "step2_desc": "Create a public paste on {platform} containing the code below, then enter the paste ID.",
+        "code_label": "Verification Code",
+        "code_copied": "Copied to clipboard",
+        "code_expires": "This code expires in {minutes} minutes.",
+        "paste_id_placeholder": "e.g. abc123de",
+        "verify": "Verify",
+        "verifying": "Verifying...",
+        "verify_success": "Account linked successfully!",
+        "verify_error": "Verification failed",
+        "platforms": {
+            "luogu": "Luogu"
+        }
+    },
     "settings": {
         "title": "Settings",
         "theme": {
@@ -94,6 +124,7 @@
         "scopes": {
             "openid": "Base identity — your user ID",
             "profile": "Profile — username, avatar, and bio",
+            "cp_linked": "Linked Accounts — your linked competitive programming platform accounts",
             "cp_summary": "CP Summary — aggregated competitive programming stats",
             "cp_details": "CP Details — full submission history and rating trends"
         }
@@ -140,6 +171,7 @@
             "data_col": "Data Returned",
             "openid": "User ID (sub claim)",
             "profile": "Username, display name, avatar URL, and bio",
+            "cp_linked": "Linked competitive programming platform accounts (platform, UID, username)",
             "cp_summary": "Linked OJ accounts, total problems solved, highest rating",
             "cp_details": "Full submission history and rating trend data"
         },

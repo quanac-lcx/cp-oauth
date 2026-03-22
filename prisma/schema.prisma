@@ -27,6 +27,7 @@ model User {
   oauthClients      OAuthClient[]
   authorizationCodes OAuthAuthorizationCode[]
   accessTokens      OAuthAccessToken[]
+  linkedAccounts    LinkedAccount[]
 
   @@map("users")
 }
@@ -86,4 +87,20 @@ model OAuthAccessToken {
   user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("oauth_access_tokens")
+}
+
+model LinkedAccount {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  platform         String
+  platformUid      String   @map("platform_uid")
+  platformUsername  String?  @map("platform_username")
+  verifiedAt       DateTime @default(now()) @map("verified_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@unique([platform, platformUid])
+  @@map("linked_accounts")
 }
