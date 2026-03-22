@@ -81,8 +81,10 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
+import { buildLoginPath } from '~/utils/auth-redirect';
 
 const { t } = useI18n();
+const route = useRoute();
 
 useHead({ title: () => `${t('developer.title')} - CP OAuth` });
 const token = useCookie('auth_token');
@@ -117,7 +119,7 @@ async function loadClients() {
             headers: { Authorization: `Bearer ${token.value}` }
         });
     } catch {
-        navigateTo('/login');
+        navigateTo(buildLoginPath(route.fullPath));
     }
 }
 

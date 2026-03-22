@@ -212,6 +212,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { Copy } from 'lucide-vue-next';
+import { buildLoginPath } from '~/utils/auth-redirect';
 import { isValidUsername, normalizeUsername } from '~/utils/username';
 
 type LocaleCode = 'en' | 'zh' | 'ja';
@@ -232,6 +233,7 @@ interface ProfileData {
 }
 
 const { locale, setLocale, t } = useI18n();
+const route = useRoute();
 
 useHead({ title: () => `${t('profile.title')} - CP OAuth` });
 const colorMode = useColorMode();
@@ -241,7 +243,7 @@ const saving = ref(false);
 const { data: userData, pending } = await useFetch<ProfileData>('/api/auth/me', {
     headers: { Authorization: `Bearer ${token.value}` },
     onResponseError() {
-        navigateTo('/login');
+        navigateTo(buildLoginPath(route.fullPath));
     }
 });
 

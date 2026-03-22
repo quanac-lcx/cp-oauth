@@ -57,6 +57,7 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
+import { getSafeRedirectTarget } from '~/utils/auth-redirect';
 
 definePageMeta({ layout: 'auth' });
 
@@ -67,6 +68,7 @@ const route = useRoute();
 const formRef = ref<FormInstance>();
 const loading = ref(false);
 const verified = computed(() => route.query.verified === 'true');
+const redirectTarget = computed(() => getSafeRedirectTarget(route.query.redirect));
 
 const form = reactive({
     email: '',
@@ -100,7 +102,7 @@ async function handleLogin() {
             }
         });
         useCookie('auth_token').value = data.token;
-        navigateTo('/');
+        navigateTo(redirectTarget.value);
     } catch (e: unknown) {
         const err = e as { data?: { message?: string } };
         ElMessage.error(err.data?.message || t('auth.login.error'));
