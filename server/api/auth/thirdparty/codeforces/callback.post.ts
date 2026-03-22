@@ -128,7 +128,10 @@ async function registerLocalUserFromCodeforces(identity: {
         select: { id: true }
     });
     if (linked) {
-        throw createError({ statusCode: 409, message: 'This Codeforces account has already registered' });
+        throw createError({
+            statusCode: 409,
+            message: 'This Codeforces account has already registered'
+        });
     }
 
     const normalizedEmail = identity.email?.toLowerCase().trim() || null;
@@ -142,7 +145,9 @@ async function registerLocalUserFromCodeforces(identity: {
         }
     }
 
-    const username = await getUniqueUsername(identity.platformUsername || `cf_${identity.platformUid}`);
+    const username = await getUniqueUsername(
+        identity.platformUsername || `cf_${identity.platformUid}`
+    );
     const userCount = await prisma.user.count();
     const role = userCount === 0 ? 'admin' : 'user';
     const email = normalizedEmail || (await allocateSyntheticEmail(identity.platformUid));

@@ -126,7 +126,8 @@ export async function exchangeCodeforcesAuthorizationCode(params: {
             data?: { error?: string; error_description?: string };
             message?: string;
         };
-        const detail = err.data?.error_description || err.data?.error || err.message || 'Unknown error';
+        const detail =
+            err.data?.error_description || err.data?.error || err.message || 'Unknown error';
         throw createError({
             statusCode: err.statusCode || 502,
             message: `Codeforces token exchange failed: ${detail}`

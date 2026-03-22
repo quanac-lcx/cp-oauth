@@ -113,7 +113,10 @@
                 </p>
 
                 <div class="profile__luogu-login-controls">
-                    <el-select v-model="luoguCredentialDuration" class="profile__luogu-login-select">
+                    <el-select
+                        v-model="luoguCredentialDuration"
+                        class="profile__luogu-login-select"
+                    >
                         <el-option
                             v-for="option in luoguDurationOptions"
                             :key="option"
@@ -134,7 +137,11 @@
                     </el-button>
                 </div>
 
-                <div v-if="luoguCredentialToken" class="profile__bind-code-value" @click="copyLuoguCredential">
+                <div
+                    v-if="luoguCredentialToken"
+                    class="profile__bind-code-value"
+                    @click="copyLuoguCredential"
+                >
                     <code>{{ luoguCredentialToken }}</code>
                     <el-icon><Copy /></el-icon>
                 </div>
@@ -491,13 +498,16 @@ async function handleBindCodeforcesOAuth() {
     }
 
     try {
-        const result = await $fetch<{ authorizationUrl: string }>('/api/auth/thirdparty/codeforces/start', {
-            headers: { Authorization: `Bearer ${token.value}` },
-            query: {
-                mode: 'bind',
-                redirect: '/profile'
+        const result = await $fetch<{ authorizationUrl: string }>(
+            '/api/auth/thirdparty/codeforces/start',
+            {
+                headers: { Authorization: `Bearer ${token.value}` },
+                query: {
+                    mode: 'bind',
+                    redirect: '/profile'
+                }
             }
-        });
+        );
         await navigateTo(result.authorizationUrl, { external: true });
     } catch (e: unknown) {
         const err = e as { data?: { message?: string } };

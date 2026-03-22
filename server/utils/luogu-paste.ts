@@ -33,12 +33,15 @@ export async function fetchLuoguPaste(pasteId: string): Promise<LuoguPasteData |
     }
 
     try {
-        const res = await $fetch<LuoguPasteResponse>(`https://www.luogu.com/paste/${normalizedPasteId}`, {
-            headers: {
-                'user-agent': LUOGU_USER_AGENT,
-                'x-luogu-type': 'content-only'
+        const res = await $fetch<LuoguPasteResponse>(
+            `https://www.luogu.com/paste/${normalizedPasteId}`,
+            {
+                headers: {
+                    'user-agent': LUOGU_USER_AGENT,
+                    'x-luogu-type': 'content-only'
+                }
             }
-        });
+        );
 
         const paste = res.currentData?.paste;
         if (!paste) {

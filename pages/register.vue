@@ -186,7 +186,9 @@ const turnstileEnabled = computed(() => publicConfig.value?.turnstileEnabled || 
 const turnstileSiteKey = computed(() => publicConfig.value?.turnstileSiteKey || '');
 const codeforcesLoginEnabled = computed(() => publicConfig.value?.codeforcesLoginEnabled || false);
 const { token: turnstileToken, el: turnstileEl } = useTurnstile(turnstileSiteKey);
-const thirdPartyCaptchaReady = computed(() => !turnstileEnabled.value || Boolean(turnstileToken.value));
+const thirdPartyCaptchaReady = computed(
+    () => !turnstileEnabled.value || Boolean(turnstileToken.value)
+);
 
 async function handleRegister() {
     if (!formRef.value) return;
@@ -217,13 +219,16 @@ async function handleRegister() {
 async function handleCodeforcesRegister() {
     codeforcesLoading.value = true;
     try {
-        const result = await $fetch<{ authorizationUrl: string }>('/api/auth/thirdparty/codeforces/start', {
-            query: {
-                mode: 'register',
-                redirect: '/',
-                turnstileToken: turnstileToken.value || ''
+        const result = await $fetch<{ authorizationUrl: string }>(
+            '/api/auth/thirdparty/codeforces/start',
+            {
+                query: {
+                    mode: 'register',
+                    redirect: '/',
+                    turnstileToken: turnstileToken.value || ''
+                }
             }
-        });
+        );
         await navigateTo(result.authorizationUrl, { external: true });
     } catch (e: unknown) {
         const err = e as { data?: { message?: string } };
@@ -245,13 +250,16 @@ function openLuoguDialog() {
 async function handleLuoguRegisterRequest() {
     luoguDialogLoading.value = true;
     try {
-        const result = await $fetch<{ requestId: string; code: string }>('/api/auth/thirdparty/luogu/register/request', {
-            method: 'POST',
-            body: {
-                platformUid: luoguUid.value.trim(),
-                turnstileToken: turnstileToken.value || ''
+        const result = await $fetch<{ requestId: string; code: string }>(
+            '/api/auth/thirdparty/luogu/register/request',
+            {
+                method: 'POST',
+                body: {
+                    platformUid: luoguUid.value.trim(),
+                    turnstileToken: turnstileToken.value || ''
+                }
             }
-        });
+        );
         luoguRequestId.value = result.requestId;
         luoguCode.value = result.code;
         luoguRegisterStep.value = 2;
@@ -266,13 +274,16 @@ async function handleLuoguRegisterRequest() {
 async function handleLuoguRegisterVerify() {
     luoguDialogLoading.value = true;
     try {
-        const result = await $fetch<{ token: string }>('/api/auth/thirdparty/luogu/register/verify', {
-            method: 'POST',
-            body: {
-                requestId: luoguRequestId.value,
-                credential: luoguCredential.value.trim()
+        const result = await $fetch<{ token: string }>(
+            '/api/auth/thirdparty/luogu/register/verify',
+            {
+                method: 'POST',
+                body: {
+                    requestId: luoguRequestId.value,
+                    credential: luoguCredential.value.trim()
+                }
             }
-        });
+        );
         useCookie('auth_token').value = result.token;
         luoguDialogVisible.value = false;
         await navigateTo('/');

@@ -66,7 +66,9 @@ const { data: publicConfig } = await useFetch<PublicConfigResponse>('/api/public
 const turnstileEnabled = computed(() => publicConfig.value?.turnstileEnabled || false);
 const turnstileSiteKey = computed(() => publicConfig.value?.turnstileSiteKey || '');
 const { token: turnstileToken, el: turnstileEl } = useTurnstile(turnstileSiteKey);
-const thirdPartyCaptchaReady = computed(() => !turnstileEnabled.value || Boolean(turnstileToken.value));
+const thirdPartyCaptchaReady = computed(
+    () => !turnstileEnabled.value || Boolean(turnstileToken.value)
+);
 
 async function handleLuoguLogin() {
     loading.value = true;

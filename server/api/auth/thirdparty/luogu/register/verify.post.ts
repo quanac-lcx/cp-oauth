@@ -11,7 +11,10 @@ async function allocateSyntheticLuoguEmail(platformUid: string): Promise<string>
     for (let i = 0; i <= 9999; i += 1) {
         const suffix = i === 0 ? '' : `_${i}`;
         const candidate = `${base}${suffix}@luogu.local`;
-        const exists = await prisma.user.findUnique({ where: { email: candidate }, select: { id: true } });
+        const exists = await prisma.user.findUnique({
+            where: { email: candidate },
+            select: { id: true }
+        });
         if (!exists) {
             return candidate;
         }
@@ -32,7 +35,10 @@ export default defineEventHandler(async event => {
     const key = `auth:luogu:register:${requestId}`;
     const raw = await redis.get(key);
     if (!raw) {
-        throw createError({ statusCode: 400, message: 'Registration request expired or not found' });
+        throw createError({
+            statusCode: 400,
+            message: 'Registration request expired or not found'
+        });
     }
 
     const { code, platformUid } = JSON.parse(raw) as { code: string; platformUid: string };
@@ -57,10 +63,15 @@ export default defineEventHandler(async event => {
         select: { id: true }
     });
     if (taken) {
-        throw createError({ statusCode: 409, message: 'This Luogu account has already registered' });
+        throw createError({
+            statusCode: 409,
+            message: 'This Luogu account has already registered'
+        });
     }
 
-    const username = await getUniqueUsername(result.platformUsername || `luogu_${result.platformUid}`);
+    const username = await getUniqueUsername(
+        result.platformUsername || `luogu_${result.platformUid}`
+    );
     const email = await allocateSyntheticLuoguEmail(result.platformUid);
     const userCount = await prisma.user.count();
     const role = userCount === 0 ? 'admin' : 'user';

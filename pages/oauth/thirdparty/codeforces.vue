@@ -77,16 +77,13 @@ async function finishCodeforcesLogin() {
             mode?: 'login' | 'bind' | 'register';
             token?: string;
             redirect?: string;
-        }>(
-            '/api/auth/thirdparty/codeforces/callback',
-            {
-                method: 'POST',
-                body: {
-                    code: oauthCode.value,
-                    state: oauthState.value
-                }
+        }>('/api/auth/thirdparty/codeforces/callback', {
+            method: 'POST',
+            body: {
+                code: oauthCode.value,
+                state: oauthState.value
             }
-        );
+        });
 
         if (result.mode === 'bind') {
             ElMessage.success(t('binding.codeforces_bind_success'));

@@ -40,7 +40,10 @@ export default defineEventHandler(async event => {
     });
 
     if (!credential) {
-        throw createError({ statusCode: 401, message: 'No active credential matched this clipboard' });
+        throw createError({
+            statusCode: 401,
+            message: 'No active credential matched this clipboard'
+        });
     }
 
     const stillLinked = await prisma.linkedAccount.findUnique({
