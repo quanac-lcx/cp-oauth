@@ -1,8 +1,11 @@
+import { consola } from 'consola';
 import crypto from 'crypto';
 import { getUserIdFromEvent } from '~/server/utils/auth';
 import { getPlatformVerifier } from '~/server/utils/platforms';
 import { getRedis } from '~/server/utils/redis';
 import prisma from '~/server/utils/prisma';
+
+const logger = consola.withTag('account:bind');
 
 export default defineEventHandler(async event => {
     const userId = getUserIdFromEvent(event);
@@ -15,6 +18,7 @@ export default defineEventHandler(async event => {
 
     const verifier = getPlatformVerifier(platform);
     if (!verifier) {
+        logger.warn(`Unsupported platform "${platform}" requested by user ${userId}`);
         throw createError({ statusCode: 400, message: `Unsupported platform: ${platform}` });
     }
 
@@ -34,6 +38,9 @@ export default defineEventHandler(async event => {
         where: { platform_platformUid: { platform, platformUid: String(platformUid) } }
     });
     if (taken) {
+        logger.warn(
+            `Platform UID ${platformUid}@${platform} already taken, requested by user ${userId}`
+        );
         throw createError({
             statusCode: 409,
             message: 'This platform account is already linked by another user'
@@ -47,6 +54,8 @@ export default defineEventHandler(async event => {
     const redis = getRedis();
     const key = `bind:${userId}:${platform}`;
     await redis.set(key, JSON.stringify({ code, platformUid: String(platformUid) }), 'EX', 600);
+
+    logger.info(`Bind request created: user=${userId}, platform=${platform}, uid=${platformUid}`);
 
     return { code, expiresIn: 600 };
 });

@@ -1,5 +1,8 @@
+import { consola } from 'consola';
 import nodemailer from 'nodemailer';
 import { getConfig } from './config';
+
+const logger = consola.withTag('mailer');
 
 export async function sendMail(to: string, subject: string, html: string): Promise<boolean> {
     const host = await getConfig('smtp_host');
@@ -9,7 +12,7 @@ export async function sendMail(to: string, subject: string, html: string): Promi
     const from = await getConfig('smtp_from');
 
     if (!host || !user) {
-        console.warn('[mailer] SMTP not configured, skipping email send');
+        logger.warn('SMTP not configured, skipping email send');
         return false;
     }
 
@@ -22,9 +25,10 @@ export async function sendMail(to: string, subject: string, html: string): Promi
 
     try {
         await transporter.sendMail({ from, to, subject, html });
+        logger.success(`Email sent to ${to}: "${subject}"`);
         return true;
     } catch (err) {
-        console.error('[mailer] Failed to send email:', err);
+        logger.error(`Failed to send email to ${to}:`, err);
         return false;
     }
 }

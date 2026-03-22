@@ -1,8 +1,11 @@
+import { consola } from 'consola';
 import { requireAdmin } from '~/server/utils/admin';
 import { getAllConfig, setConfig, clearConfigCache } from '~/server/utils/config';
 
+const logger = consola.withTag('admin:config');
+
 export default defineEventHandler(async event => {
-    await requireAdmin(event);
+    const adminId = await requireAdmin(event);
 
     if (event.method === 'GET') {
         return await getAllConfig();
@@ -23,13 +26,16 @@ export default defineEventHandler(async event => {
             'turnstile_secret_key'
         ];
 
+        const updatedKeys: string[] = [];
         for (const [key, value] of Object.entries(body)) {
             if (allowedKeys.includes(key) && typeof value === 'string') {
                 await setConfig(key, value);
+                updatedKeys.push(key);
             }
         }
 
         await clearConfigCache();
+        logger.info(`Config updated by admin ${adminId}: [${updatedKeys.join(', ')}]`);
         return await getAllConfig();
     }
 

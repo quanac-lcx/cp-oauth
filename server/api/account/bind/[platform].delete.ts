@@ -1,5 +1,8 @@
+import { consola } from 'consola';
 import { getUserIdFromEvent } from '~/server/utils/auth';
 import prisma from '~/server/utils/prisma';
+
+const logger = consola.withTag('account:bind');
 
 export default defineEventHandler(async event => {
     const userId = getUserIdFromEvent(event);
@@ -23,6 +26,10 @@ export default defineEventHandler(async event => {
     await prisma.linkedAccount.delete({
         where: { id: existing.id }
     });
+
+    logger.success(
+        `Account unlinked: user=${userId}, platform=${platform}, uid=${existing.platformUid}`
+    );
 
     return { success: true };
 });

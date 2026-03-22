@@ -1,6 +1,9 @@
+import { consola } from 'consola';
 import jwt from 'jsonwebtoken';
 import prisma from '~/server/utils/prisma';
 import type { ScopeName } from '~/server/utils/oauth';
+
+const logger = consola.withTag('oauth:userinfo');
 
 interface OAuthPayload {
     sub: string;
@@ -12,6 +15,7 @@ interface OAuthPayload {
 export default defineEventHandler(async event => {
     const auth = getHeader(event, 'authorization');
     if (!auth?.startsWith('Bearer ')) {
+        logger.warn('Rejected: missing Bearer token');
         throw createError({ statusCode: 401, message: 'Bearer token required' });
     }
 
@@ -22,21 +26,27 @@ export default defineEventHandler(async event => {
     try {
         payload = jwt.verify(token, config.jwtSecret) as OAuthPayload;
     } catch {
+        logger.warn('Rejected: invalid or expired access token');
         throw createError({ statusCode: 401, message: 'Invalid or expired token' });
     }
 
     if (payload.type !== 'oauth_access') {
+        logger.warn(`Rejected: wrong token type="${payload.type}" for userinfo`);
         throw createError({ statusCode: 401, message: 'Invalid token type' });
     }
 
     // Verify token still exists in DB (not revoked)
     const storedToken = await prisma.oAuthAccessToken.findUnique({ where: { token } });
     if (!storedToken || storedToken.expiresAt < new Date()) {
+        logger.warn(
+            `Rejected: token expired or revoked for user=${payload.sub}, client_id=${payload.client_id}`
+        );
         throw createError({ statusCode: 401, message: 'Token expired or revoked' });
     }
 
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) {
+        logger.error(`User not found: sub=${payload.sub}, client_id=${payload.client_id}`);
         throw createError({ statusCode: 404, message: 'User not found' });
     }
 
@@ -93,6 +103,10 @@ export default defineEventHandler(async event => {
             note: 'Detailed CP data coming soon'
         };
     }
+
+    logger.info(
+        `Userinfo served: user=${user.username} (${user.id}), client_id=${payload.client_id}, scopes=[${scopes.join(', ')}]`
+    );
 
     return response;
 });

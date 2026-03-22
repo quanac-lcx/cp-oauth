@@ -1,7 +1,10 @@
+import { consola } from 'consola';
 import { getUserIdFromEvent } from '~/server/utils/auth';
 import { getPlatformVerifier } from '~/server/utils/platforms';
 import { getRedis } from '~/server/utils/redis';
 import prisma from '~/server/utils/prisma';
+
+const logger = consola.withTag('account:bind');
 
 export default defineEventHandler(async event => {
     const userId = getUserIdFromEvent(event);
@@ -22,6 +25,9 @@ export default defineEventHandler(async event => {
     const key = `bind:${userId}:${platform}`;
     const raw = await redis.get(key);
     if (!raw) {
+        logger.warn(
+            `Bind verify failed: no pending request for user=${userId}, platform=${platform}`
+        );
         throw createError({
             statusCode: 400,
             message: 'No pending bind request found or it has expired'
@@ -34,9 +40,13 @@ export default defineEventHandler(async event => {
     };
 
     // Call platform verifier
+    logger.info(`Verifying bind: user=${userId}, platform=${platform}, uid=${platformUid}`);
     const result = await verifier.verify({ platformUid, code, credential });
 
     if (!result.success) {
+        logger.warn(
+            `Bind verification failed: user=${userId}, platform=${platform}, uid=${platformUid}, error=${result.error}`
+        );
         throw createError({
             statusCode: 400,
             message: result.error || 'Verification failed'
@@ -55,6 +65,10 @@ export default defineEventHandler(async event => {
 
     // Clean up Redis
     await redis.del(key);
+
+    logger.success(
+        `Account linked: user=${userId}, platform=${platform}, uid=${result.platformUid}, username=${result.platformUsername}`
+    );
 
     return {
         id: linked.id,

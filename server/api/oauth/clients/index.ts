@@ -1,7 +1,10 @@
+import { consola } from 'consola';
 import bcrypt from 'bcryptjs';
 import prisma from '~/server/utils/prisma';
 import { getUserIdFromEvent } from '~/server/utils/auth';
 import { generateClientSecret } from '~/server/utils/oauth';
+
+const logger = consola.withTag('oauth:clients');
 
 export default defineEventHandler(async event => {
     const userId = getUserIdFromEvent(event);
@@ -18,6 +21,7 @@ export default defineEventHandler(async event => {
             },
             orderBy: { createdAt: 'desc' }
         });
+        logger.debug(`Listed ${clients.length} clients for user ${userId}`);
         return clients;
     }
 
@@ -47,6 +51,8 @@ export default defineEventHandler(async event => {
                 createdAt: true
             }
         });
+
+        logger.success(`Client created: "${name}" (${client.clientId}) by user ${userId}`);
 
         // Return plain secret only once at creation
         return { ...client, clientSecret: plainSecret };

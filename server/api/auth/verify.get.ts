@@ -1,4 +1,7 @@
+import { consola } from 'consola';
 import prisma from '~/server/utils/prisma';
+
+const logger = consola.withTag('auth:verify');
 
 export default defineEventHandler(async event => {
     const query = getQuery(event);
@@ -10,6 +13,7 @@ export default defineEventHandler(async event => {
 
     const user = await prisma.user.findUnique({ where: { emailVerifyToken: token } });
     if (!user) {
+        logger.warn('Email verification failed: invalid or expired token');
         throw createError({ statusCode: 400, message: 'Invalid or expired verification token' });
     }
 
@@ -17,6 +21,8 @@ export default defineEventHandler(async event => {
         where: { id: user.id },
         data: { emailVerified: true, emailVerifyToken: null }
     });
+
+    logger.success(`Email verified: ${user.username} (${user.id})`);
 
     return sendRedirect(event, '/login?verified=true');
 });

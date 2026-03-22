@@ -31,7 +31,9 @@
             "Bash(docker ps:*)",
             "WebFetch(domain:0f-0b.github.io)",
             "Bash(curl -sL \"https://0f-0b.github.io/luogu-api-docs/\")",
-            "Bash(curl:*)"
+            "Bash(curl:*)",
+            "Bash(npm ls:*)",
+            "Bash(grep -q '\"\"consola\"\"' package.json)"
         ]
     }
 }

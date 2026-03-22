@@ -1,6 +1,9 @@
+import { consola } from 'consola';
 import prisma from '~/server/utils/prisma';
 import { getUserIdFromEvent } from '~/server/utils/auth';
 import { generateCode, validateScopes } from '~/server/utils/oauth';
+
+const logger = consola.withTag('oauth:authorize');
 
 export default defineEventHandler(async event => {
     const userId = getUserIdFromEvent(event);
@@ -17,6 +20,7 @@ export default defineEventHandler(async event => {
     } = body;
 
     if (!approved) {
+        logger.info(`User ${userId} denied authorization for client_id=${clientId}`);
         return { redirect: `${redirectUri}?error=access_denied${state ? `&state=${state}` : ''}` };
     }
 
@@ -25,15 +29,18 @@ export default defineEventHandler(async event => {
     }
 
     if (!validateScopes(scopes)) {
+        logger.warn(`Invalid scopes [${scopes.join(', ')}] from user ${userId}`);
         throw createError({ statusCode: 400, message: 'Invalid scope(s)' });
     }
 
     const client = await prisma.oAuthClient.findUnique({ where: { clientId } });
     if (!client) {
+        logger.warn(`Unknown client_id=${clientId} during consent from user ${userId}`);
         throw createError({ statusCode: 404, message: 'Unknown client' });
     }
 
     if (!client.redirectUris.includes(redirectUri)) {
+        logger.warn(`Invalid redirect_uri for client "${client.name}" from user ${userId}`);
         throw createError({ statusCode: 400, message: 'Invalid redirect_uri' });
     }
 
@@ -55,6 +62,10 @@ export default defineEventHandler(async event => {
 
     const params = new URLSearchParams({ code });
     if (state) params.set('state', state);
+
+    logger.success(
+        `Authorization code issued for user ${userId} → client "${client.name}" (${clientId}), scopes=[${scopes.join(', ')}]`
+    );
 
     return { redirect: `${redirectUri}?${params.toString()}` };
 });

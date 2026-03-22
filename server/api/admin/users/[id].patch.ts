@@ -1,5 +1,8 @@
+import { consola } from 'consola';
 import prisma from '~/server/utils/prisma';
 import { requireAdmin } from '~/server/utils/admin';
+
+const logger = consola.withTag('admin:users');
 
 export default defineEventHandler(async event => {
     const adminId = await requireAdmin(event);
@@ -32,6 +35,8 @@ export default defineEventHandler(async event => {
                 createdAt: true
             }
         });
+
+        logger.info(`User ${id} updated by admin ${adminId}: ${JSON.stringify(data)}`);
         return user;
     }
 
