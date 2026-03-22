@@ -61,6 +61,8 @@ import { ElMessage } from 'element-plus';
 definePageMeta({ layout: 'auth' });
 
 const { t } = useI18n();
+
+useHead({ title: () => `${t('auth.login.title')} - CP OAuth` });
 const route = useRoute();
 const formRef = ref<FormInstance>();
 const loading = ref(false);

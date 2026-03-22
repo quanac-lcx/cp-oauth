@@ -30,6 +30,10 @@
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n();
+
+useHead({ title: () => `${t('home.title')} - CP OAuth` });
+
 interface UserSummary {
     id: string;
     username: string;

@@ -83,6 +83,8 @@ import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
 
 const { t } = useI18n();
+
+useHead({ title: () => `${t('developer.title')} - CP OAuth` });
 const token = useCookie('auth_token');
 const formRef = ref<FormInstance>();
 

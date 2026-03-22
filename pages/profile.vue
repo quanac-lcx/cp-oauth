@@ -228,6 +228,8 @@ interface ProfileData {
 }
 
 const { locale, setLocale, t } = useI18n();
+
+useHead({ title: () => `${t('profile.title')} - CP OAuth` });
 const colorMode = useColorMode();
 const token = useCookie('auth_token');
 const saving = ref(false);

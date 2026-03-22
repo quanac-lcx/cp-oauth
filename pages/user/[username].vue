@@ -58,6 +58,8 @@ const colorMode = useColorMode();
 
 const username = route.params.username as string;
 
+useHead({ title: () => `@${username} - CP OAuth` });
+
 interface UserProfile {
     id: string;
     username: string;

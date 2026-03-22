@@ -38,6 +38,8 @@ import { ElMessage } from 'element-plus';
 definePageMeta({ layout: 'auth' });
 
 const { t } = useI18n();
+
+useHead({ title: () => `${t('oauth.consent.title')} - CP OAuth` });
 const route = useRoute();
 const loadError = ref('');
 

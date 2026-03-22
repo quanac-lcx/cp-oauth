@@ -78,6 +78,8 @@
 import { renderMarkdown } from '~/utils/markdown';
 
 const { t } = useI18n();
+
+useHead({ title: () => `${t('about.title')} - CP OAuth` });
 const colorMode = useColorMode();
 const currentTheme = computed(() => (colorMode.value === 'dark' ? 'dark' : 'light'));
 

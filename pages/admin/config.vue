@@ -71,6 +71,8 @@
 import { ElMessage } from 'element-plus';
 
 const { t } = useI18n();
+
+useHead({ title: () => `${t('admin.config.tab')} - CP OAuth` });
 const token = useCookie('auth_token');
 const activeTab = ref('config');
 const saving = ref(false);
