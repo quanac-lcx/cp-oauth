@@ -101,7 +101,7 @@ interface UserProfile {
 const { data: user, error } = await useFetch<UserProfile>(`/api/users/${username}`);
 
 const renderedHtml = ref('');
-const cpPlatforms = new Set(['luogu', 'codeforces']);
+const cpPlatforms = new Set(['luogu', 'codeforces', 'atcoder']);
 
 const cpLinkedAccounts = computed(
     () => user.value?.linkedAccounts?.filter(account => cpPlatforms.has(account.platform)) || []

@@ -130,6 +130,15 @@
                         >
                     </span>
                 </el-button>
+                <el-button :disabled="atcoderLinked" @click="openBindDialog('atcoder')">
+                    <span class="profile__bind-btn-content">
+                        <AppPlatformIcon platform="atcoder" />
+                        <span
+                            >{{ $t('binding.link_account') }} —
+                            {{ $t('binding.platforms.atcoder') }}</span
+                        >
+                    </span>
+                </el-button>
                 <el-button :disabled="codeforcesLinked" @click="handleBindCodeforcesOAuth">
                     <span class="profile__bind-btn-content">
                         <AppPlatformIcon platform="codeforces" />
@@ -226,14 +235,14 @@
                 <div v-if="bindStep === 1">
                     <p class="profile__bind-desc">
                         {{
-                            $t('binding.step1_desc', {
+                            $t(bindStep1DescKey, {
                                 platform: $t(`binding.platforms.${bindPlatform}`)
                             })
                         }}
                     </p>
                     <el-input
                         v-model="bindUid"
-                        :placeholder="$t('binding.uid_placeholder')"
+                        :placeholder="$t(bindUidPlaceholderKey)"
                         class="profile__bind-input"
                     />
                     <div class="profile__bind-actions">
@@ -252,10 +261,26 @@
                 <div v-if="bindStep === 2">
                     <p class="profile__bind-desc">
                         {{
-                            $t('binding.step2_desc', {
+                            $t(bindStep2DescKey, {
                                 platform: $t(`binding.platforms.${bindPlatform}`)
                             })
                         }}
+                    </p>
+                    <p v-if="isAtcoderBinding" class="profile__bind-desc profile__bind-desc--minor">
+                        {{ $t('binding.atcoder_settings_guide') }}
+                        <a
+                            href="https://atcoder.jp/settings"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            https://atcoder.jp/settings
+                        </a>
+                    </p>
+                    <p
+                        v-if="isAtcoderBinding && locale === 'zh'"
+                        class="profile__bind-desc profile__bind-desc--minor"
+                    >
+                        {{ $t('binding.atcoder_cn_plugin_hint') }}
                     </p>
                     <div class="profile__bind-code">
                         <label class="profile__bind-code-label">{{
@@ -270,15 +295,16 @@
                         </p>
                     </div>
                     <el-input
+                        v-if="!isAtcoderBinding"
                         v-model="bindCredential"
-                        :placeholder="$t('binding.paste_id_placeholder')"
+                        :placeholder="$t(bindCredentialPlaceholderKey)"
                         class="profile__bind-input"
                     />
                     <div class="profile__bind-actions">
                         <el-button
                             type="primary"
                             :loading="bindLoading"
-                            :disabled="!bindCredential.trim()"
+                            :disabled="!isAtcoderBinding && !bindCredential.trim()"
                             @click="handleVerify"
                         >
                             {{ bindLoading ? $t('binding.verifying') : $t('binding.verify') }}
@@ -494,7 +520,7 @@ const localeOptions = computed(() => [
 // --- Linked Accounts ---
 interface LinkedAccount {
     id: string;
-    platform: string;
+    platform: 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google';
     platformUid: string;
     platformUsername: string | null;
     verifiedAt: string;
@@ -514,11 +540,29 @@ const luoguCredentialToken = ref('');
 const luoguCredentialExpiresAt = ref<number | null>(null);
 const luoguDurationOptions = LUOGU_LOGIN_DURATION_OPTIONS;
 const luoguLinked = computed(() => bindings.value.some(account => account.platform === 'luogu'));
+const atcoderLinked = computed(() =>
+    bindings.value.some(account => account.platform === 'atcoder')
+);
 const codeforcesLinked = computed(() =>
     bindings.value.some(account => account.platform === 'codeforces')
 );
 const githubLinked = computed(() => bindings.value.some(account => account.platform === 'github'));
 const googleLinked = computed(() => bindings.value.some(account => account.platform === 'google'));
+const bindStep2DescKey = computed(() =>
+    bindPlatform.value === 'atcoder' ? 'binding.step2_desc_atcoder' : 'binding.step2_desc'
+);
+const isAtcoderBinding = computed(() => bindPlatform.value === 'atcoder');
+const bindStep1DescKey = computed(() =>
+    bindPlatform.value === 'atcoder' ? 'binding.step1_desc_atcoder' : 'binding.step1_desc'
+);
+const bindUidPlaceholderKey = computed(() =>
+    bindPlatform.value === 'atcoder' ? 'binding.username_placeholder' : 'binding.uid_placeholder'
+);
+const bindCredentialPlaceholderKey = computed(() =>
+    bindPlatform.value === 'atcoder'
+        ? 'binding.affiliation_placeholder'
+        : 'binding.paste_id_placeholder'
+);
 
 async function fetchBindings() {
     try {
@@ -565,7 +609,10 @@ async function handleVerify() {
         await $fetch('/api/account/bind/verify', {
             method: 'POST',
             headers: { Authorization: `Bearer ${token.value}` },
-            body: { platform: bindPlatform.value, credential: bindCredential.value.trim() }
+            body: {
+                platform: bindPlatform.value,
+                credential: isAtcoderBinding.value ? '' : bindCredential.value.trim()
+            }
         });
         ElMessage.success(t('binding.verify_success'));
         bindDialogVisible.value = false;
@@ -861,6 +908,18 @@ function copyLuoguCredential() {
         color: var(--text-secondary);
         margin-bottom: 14px;
         line-height: 1.6;
+    }
+
+    &__bind-desc--minor {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: -8px;
+
+        a {
+            color: var(--text-secondary);
+            text-decoration: underline;
+            word-break: break-all;
+        }
     }
 
     &__bind-input {

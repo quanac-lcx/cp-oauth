@@ -11,8 +11,13 @@ export default defineEventHandler(async event => {
     const body = await readBody(event);
     const { platform, credential } = body;
 
-    if (!platform || !credential) {
-        throw createError({ statusCode: 400, message: 'Platform and credential are required' });
+    if (!platform) {
+        throw createError({ statusCode: 400, message: 'Platform is required' });
+    }
+
+    const normalizedCredential = typeof credential === 'string' ? credential : '';
+    if (platform !== 'atcoder' && !normalizedCredential) {
+        throw createError({ statusCode: 400, message: 'Credential is required' });
     }
 
     const verifier = getPlatformVerifier(platform);
@@ -41,7 +46,7 @@ export default defineEventHandler(async event => {
 
     // Call platform verifier
     logger.info(`Verifying bind: user=${userId}, platform=${platform}, uid=${platformUid}`);
-    const result = await verifier.verify({ platformUid, code, credential });
+    const result = await verifier.verify({ platformUid, code, credential: normalizedCredential });
 
     if (!result.success) {
         logger.warn(

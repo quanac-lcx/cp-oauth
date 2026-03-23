@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-    platform: 'luogu' | 'codeforces' | 'github' | 'google';
+    platform: 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google';
 }>();
 
 const baseUrl = computed(() => {
@@ -13,6 +13,9 @@ const baseUrl = computed(() => {
 });
 
 const iconSrc = computed(() => {
+    if (props.platform === 'atcoder') {
+        return `${baseUrl.value}icons/atcoder.svg`;
+    }
     if (props.platform === 'codeforces') {
         return `${baseUrl.value}icons/codeforces-tricolor.svg`;
     }
