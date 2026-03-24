@@ -62,5 +62,10 @@ export default defineNuxtConfig({
         public: {
             appName: 'CP OAuth'
         }
+    },
+    nitro: {
+        externals: {
+            external: ['@prisma/client', '.prisma/client']
+        }
     }
 });
