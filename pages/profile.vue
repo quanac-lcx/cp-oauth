@@ -869,7 +869,7 @@ async function fetchSecurityStatus() {
 
 async function fetchPasskeys() {
     try {
-        passkeys.value = await $fetch<PasskeyItem[]>('/api/auth/passkey/credentials/index', {
+        passkeys.value = await $fetch<PasskeyItem[]>('/api/auth/passkey/credentials', {
             headers: { Authorization: `Bearer ${token.value}` }
         });
     } catch {
