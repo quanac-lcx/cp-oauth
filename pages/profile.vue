@@ -22,213 +22,480 @@
                 </div>
             </div>
 
-            <el-form
-                ref="formRef"
-                :model="form"
-                label-position="top"
-                class="profile__form"
-                @submit.prevent="handleSave"
-            >
-                <el-form-item :label="$t('profile.avatar_url')">
-                    <el-input
-                        v-model="form.avatarUrl"
-                        type="url"
-                        :placeholder="$t('profile.avatar_url_hint')"
-                    />
-                </el-form-item>
-                <el-form-item :label="$t('profile.display_name')">
-                    <el-input v-model="form.displayName" />
-                </el-form-item>
-                <el-form-item :label="$t('profile.username')">
-                    <el-input v-model="form.username" :placeholder="$t('profile.username_hint')" />
-                </el-form-item>
-                <el-form-item :label="$t('profile.email')">
-                    <el-input
-                        v-model="form.email"
-                        type="email"
-                        :placeholder="$t('profile.email_hint')"
-                    />
-                    <div class="profile__email-meta">
-                        <el-tag v-if="emailVerified" type="success" size="small">
-                            {{ $t('profile.email_verified') }}
-                        </el-tag>
-                        <el-tag v-else type="warning" size="small">
-                            {{ $t('profile.email_unverified') }}
-                        </el-tag>
-                        <el-button
-                            v-if="!emailVerified"
-                            text
-                            size="small"
-                            :loading="sendingVerifyEmail"
-                            @click="handleSendVerifyEmail"
+            <el-tabs v-model="activeTab" class="profile__tabs">
+                <el-tab-pane :label="$t('profile.tabs.basic')" name="basic">
+                    <el-form
+                        ref="formRef"
+                        :model="form"
+                        label-position="top"
+                        class="profile__form"
+                        @submit.prevent="handleSave"
+                    >
+                        <el-form-item :label="$t('profile.avatar_url')">
+                            <el-input
+                                v-model="form.avatarUrl"
+                                type="url"
+                                :placeholder="$t('profile.avatar_url_hint')"
+                            />
+                        </el-form-item>
+                        <el-form-item :label="$t('profile.display_name')">
+                            <el-input v-model="form.displayName" />
+                        </el-form-item>
+                        <el-form-item :label="$t('profile.username')">
+                            <el-input
+                                v-model="form.username"
+                                :placeholder="$t('profile.username_hint')"
+                            />
+                        </el-form-item>
+                        <el-form-item :label="$t('profile.email')">
+                            <el-input
+                                v-model="form.email"
+                                type="email"
+                                :placeholder="$t('profile.email_hint')"
+                            />
+                            <div class="profile__email-meta">
+                                <el-tag v-if="emailVerified" type="success" size="small">
+                                    {{ $t('profile.email_verified') }}
+                                </el-tag>
+                                <el-tag v-else type="warning" size="small">
+                                    {{ $t('profile.email_unverified') }}
+                                </el-tag>
+                                <el-button
+                                    v-if="!emailVerified"
+                                    text
+                                    size="small"
+                                    :loading="sendingVerifyEmail"
+                                    @click="handleSendVerifyEmail"
+                                >
+                                    {{ $t('profile.send_verify_email') }}
+                                </el-button>
+                            </div>
+                        </el-form-item>
+                        <el-form-item :label="$t('profile.bio')">
+                            <el-input v-model="form.bio" type="textarea" :rows="3" />
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" native-type="submit" :loading="saving">
+                                {{ saving ? $t('profile.saving') : $t('profile.save') }}
+                            </el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-tab-pane>
+
+                <el-tab-pane :label="$t('profile.tabs.public')" name="public">
+                    <el-form
+                        ref="publicFormRef"
+                        :model="form"
+                        label-position="top"
+                        class="profile__form"
+                        @submit.prevent="handleSave"
+                    >
+                        <el-form-item>
+                            <template #label>
+                                {{ $t('profile.homepage') }}
+                                <span class="profile__hint">{{ $t('profile.homepage_hint') }}</span>
+                            </template>
+                            <el-input
+                                v-model="form.homepage"
+                                type="textarea"
+                                :rows="10"
+                                class="profile__editor"
+                            />
+                        </el-form-item>
+
+                        <div class="profile__section-title">
+                            {{ $t('profile.public_accounts') }}
+                        </div>
+                        <p class="profile__section-desc">
+                            {{ $t('profile.public_accounts_hint') }}
+                        </p>
+
+                        <div v-if="bindings.length" class="profile__visibility-panel">
+                            <el-checkbox-group
+                                v-model="visiblePlatforms"
+                                class="profile__visibility-group"
+                            >
+                                <el-checkbox
+                                    v-for="account in bindings"
+                                    :key="`visibility-${account.id}`"
+                                    :label="account.platform"
+                                    border
+                                    class="profile__visibility-item"
+                                >
+                                    <span class="profile__visibility-content">
+                                        <span class="profile__binding-platform">
+                                            <AppPlatformIcon :platform="account.platform" />
+                                            <span>{{
+                                                $t(`binding.platforms.${account.platform}`)
+                                            }}</span>
+                                        </span>
+                                        <span class="profile__binding-uid">
+                                            {{ account.platformUsername || account.platformUid }}
+                                        </span>
+                                    </span>
+                                </el-checkbox>
+                            </el-checkbox-group>
+                        </div>
+                        <p v-else class="profile__no-bindings">
+                            {{ $t('profile.no_accounts_to_show') }}
+                        </p>
+
+                        <el-form-item>
+                            <el-button type="primary" native-type="submit" :loading="saving">
+                                {{ saving ? $t('profile.saving') : $t('profile.save') }}
+                            </el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-tab-pane>
+
+                <el-tab-pane :label="$t('profile.tabs.bindings')" name="bindings">
+                    <h2 class="profile__section-title">{{ $t('binding.title') }}</h2>
+
+                    <div v-if="bindings.length" class="profile__bindings">
+                        <div
+                            v-for="account in bindings"
+                            :key="account.id"
+                            class="profile__binding-item"
                         >
-                            {{ $t('profile.send_verify_email') }}
+                            <div class="profile__binding-info">
+                                <span class="profile__binding-platform">
+                                    <AppPlatformIcon :platform="account.platform" />
+                                    <span>{{ $t(`binding.platforms.${account.platform}`) }}</span>
+                                </span>
+                                <span class="profile__binding-uid">
+                                    {{ account.platformUsername || account.platformUid }}
+                                    <span
+                                        v-if="account.platformUsername"
+                                        class="profile__binding-uid-hint"
+                                    >
+                                        (UID: {{ account.platformUid }})
+                                    </span>
+                                    <el-button
+                                        v-if="canRefresh(account.platform)"
+                                        text
+                                        size="small"
+                                        :loading="refreshingPlatform === account.platform"
+                                        :title="$t('binding.refresh_username')"
+                                        @click="handleRefreshUsername(account)"
+                                    >
+                                        <RefreshCw :size="13" :stroke-width="1.5" />
+                                    </el-button>
+                                </span>
+                            </div>
+                            <el-popconfirm
+                                :title="$t('binding.unlink_confirm')"
+                                @confirm="handleUnlink(account.platform)"
+                            >
+                                <template #reference>
+                                    <el-button size="small" type="danger" text>
+                                        {{ $t('binding.unlink') }}
+                                    </el-button>
+                                </template>
+                            </el-popconfirm>
+                        </div>
+                    </div>
+                    <p v-else class="profile__no-bindings">{{ $t('binding.no_accounts') }}</p>
+
+                    <div class="profile__bind-actions-list">
+                        <el-button :disabled="luoguLinked" @click="openBindDialog('luogu')">
+                            <span class="profile__bind-btn-content">
+                                <AppPlatformIcon platform="luogu" />
+                                <span
+                                    >{{ $t('binding.link_account') }} —
+                                    {{ $t('binding.platforms.luogu') }}</span
+                                >
+                            </span>
+                        </el-button>
+                        <el-button :disabled="atcoderLinked" @click="openBindDialog('atcoder')">
+                            <span class="profile__bind-btn-content">
+                                <AppPlatformIcon platform="atcoder" />
+                                <span
+                                    >{{ $t('binding.link_account') }} —
+                                    {{ $t('binding.platforms.atcoder') }}</span
+                                >
+                            </span>
+                        </el-button>
+                        <el-button :disabled="codeforcesLinked" @click="handleBindCodeforcesOAuth">
+                            <span class="profile__bind-btn-content">
+                                <AppPlatformIcon platform="codeforces" />
+                                <span
+                                    >{{ $t('binding.link_account') }} —
+                                    {{ $t('binding.platforms.codeforces') }}</span
+                                >
+                            </span>
+                        </el-button>
+                        <el-button :disabled="githubLinked" @click="handleBindGitHubOAuth">
+                            <span class="profile__bind-btn-content">
+                                <AppPlatformIcon platform="github" />
+                                <span
+                                    >{{ $t('binding.link_account') }} —
+                                    {{ $t('binding.platforms.github') }}</span
+                                >
+                            </span>
+                        </el-button>
+                        <el-button :disabled="googleLinked" @click="handleBindGoogleOAuth">
+                            <span class="profile__bind-btn-content">
+                                <AppPlatformIcon platform="google" />
+                                <span
+                                    >{{ $t('binding.link_account') }} —
+                                    {{ $t('binding.platforms.google') }}</span
+                                >
+                            </span>
                         </el-button>
                     </div>
-                </el-form-item>
-                <el-form-item :label="$t('profile.bio')">
-                    <el-input v-model="form.bio" type="textarea" :rows="3" />
-                </el-form-item>
-                <el-form-item>
-                    <template #label>
-                        {{ $t('profile.homepage') }}
-                        <span class="profile__hint">{{ $t('profile.homepage_hint') }}</span>
-                    </template>
-                    <el-input
-                        v-model="form.homepage"
-                        type="textarea"
-                        :rows="10"
-                        class="profile__editor"
-                    />
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" native-type="submit" :loading="saving">
-                        {{ saving ? $t('profile.saving') : $t('profile.save') }}
-                    </el-button>
-                </el-form-item>
-            </el-form>
 
-            <!-- Linked Accounts section -->
-            <el-divider />
-            <h2 class="profile__section-title">{{ $t('binding.title') }}</h2>
+                    <div v-if="luoguLinked" class="profile__luogu-login">
+                        <h3 class="profile__luogu-login-title">
+                            {{ $t('binding.luogu_login.title') }}
+                        </h3>
+                        <p class="profile__luogu-login-desc">
+                            {{ $t('binding.luogu_login.desc') }}
+                        </p>
+                        <p class="profile__luogu-login-note">
+                            {{ $t('binding.luogu_login.new_clipboard_notice') }}
+                        </p>
+                        <p class="profile__luogu-login-note">
+                            {{ $t('binding.luogu_login.refresh_notice') }}
+                        </p>
 
-            <div v-if="bindings.length" class="profile__bindings">
-                <div v-for="account in bindings" :key="account.id" class="profile__binding-item">
-                    <div class="profile__binding-info">
-                        <span class="profile__binding-platform">
-                            <AppPlatformIcon :platform="account.platform" />
-                            <span>{{ $t(`binding.platforms.${account.platform}`) }}</span>
-                        </span>
-                        <span class="profile__binding-uid">
-                            {{ account.platformUsername || account.platformUid }}
-                            <span v-if="account.platformUsername" class="profile__binding-uid-hint">
-                                (UID: {{ account.platformUid }})
-                            </span>
-                            <el-button
-                                v-if="canRefresh(account.platform)"
-                                text
-                                size="small"
-                                :loading="refreshingPlatform === account.platform"
-                                :title="$t('binding.refresh_username')"
-                                @click="handleRefreshUsername(account)"
+                        <div class="profile__luogu-login-controls">
+                            <el-select
+                                v-model="luoguCredentialDuration"
+                                class="profile__luogu-login-select"
                             >
-                                <RefreshCw :size="13" :stroke-width="1.5" />
+                                <el-option
+                                    v-for="option in luoguDurationOptions"
+                                    :key="option"
+                                    :value="option"
+                                    :label="$t(`binding.luogu_login.duration.${option}`)"
+                                />
+                            </el-select>
+                            <el-button
+                                type="primary"
+                                :loading="luoguCredentialLoading"
+                                @click="handleCreateLuoguCredential"
+                            >
+                                {{
+                                    luoguCredentialLoading
+                                        ? $t('binding.luogu_login.creating')
+                                        : $t('binding.luogu_login.create')
+                                }}
                             </el-button>
-                        </span>
+                        </div>
+
+                        <div
+                            v-if="luoguCredentialToken"
+                            class="profile__bind-code-value"
+                            @click="copyLuoguCredential"
+                        >
+                            <code>{{ luoguCredentialToken }}</code>
+                            <el-icon><Copy /></el-icon>
+                        </div>
+                        <p v-if="luoguCredentialExpiresAt" class="profile__bind-code-hint">
+                            {{
+                                $t('binding.luogu_login.expires_at', {
+                                    time: new Date(luoguCredentialExpiresAt).toLocaleString()
+                                })
+                            }}
+                        </p>
                     </div>
-                    <el-popconfirm
-                        :title="$t('binding.unlink_confirm')"
-                        @confirm="handleUnlink(account.platform)"
-                    >
-                        <template #reference>
-                            <el-button size="small" type="danger" text>{{
-                                $t('binding.unlink')
-                            }}</el-button>
-                        </template>
-                    </el-popconfirm>
-                </div>
-            </div>
-            <p v-else class="profile__no-bindings">{{ $t('binding.no_accounts') }}</p>
+                </el-tab-pane>
 
-            <div class="profile__bind-actions-list">
-                <el-button :disabled="luoguLinked" @click="openBindDialog('luogu')">
-                    <span class="profile__bind-btn-content">
-                        <AppPlatformIcon platform="luogu" />
-                        <span
-                            >{{ $t('binding.link_account') }} —
-                            {{ $t('binding.platforms.luogu') }}</span
-                        >
-                    </span>
-                </el-button>
-                <el-button :disabled="atcoderLinked" @click="openBindDialog('atcoder')">
-                    <span class="profile__bind-btn-content">
-                        <AppPlatformIcon platform="atcoder" />
-                        <span
-                            >{{ $t('binding.link_account') }} —
-                            {{ $t('binding.platforms.atcoder') }}</span
-                        >
-                    </span>
-                </el-button>
-                <el-button :disabled="codeforcesLinked" @click="handleBindCodeforcesOAuth">
-                    <span class="profile__bind-btn-content">
-                        <AppPlatformIcon platform="codeforces" />
-                        <span
-                            >{{ $t('binding.link_account') }} —
-                            {{ $t('binding.platforms.codeforces') }}</span
-                        >
-                    </span>
-                </el-button>
-                <el-button :disabled="githubLinked" @click="handleBindGitHubOAuth">
-                    <span class="profile__bind-btn-content">
-                        <AppPlatformIcon platform="github" />
-                        <span
-                            >{{ $t('binding.link_account') }} —
-                            {{ $t('binding.platforms.github') }}</span
-                        >
-                    </span>
-                </el-button>
-                <el-button :disabled="googleLinked" @click="handleBindGoogleOAuth">
-                    <span class="profile__bind-btn-content">
-                        <AppPlatformIcon platform="google" />
-                        <span
-                            >{{ $t('binding.link_account') }} —
-                            {{ $t('binding.platforms.google') }}</span
-                        >
-                    </span>
-                </el-button>
-            </div>
+                <el-tab-pane :label="$t('profile.tabs.preferences')" name="preferences">
+                    <h2 class="profile__section-title">{{ $t('settings.title') }}</h2>
 
-            <div v-if="luoguLinked" class="profile__luogu-login">
-                <h3 class="profile__luogu-login-title">{{ $t('binding.luogu_login.title') }}</h3>
-                <p class="profile__luogu-login-desc">{{ $t('binding.luogu_login.desc') }}</p>
-                <p class="profile__luogu-login-note">
-                    {{ $t('binding.luogu_login.new_clipboard_notice') }}
-                </p>
-                <p class="profile__luogu-login-note">
-                    {{ $t('binding.luogu_login.refresh_notice') }}
-                </p>
+                    <div class="profile__setting-row">
+                        <label class="profile__setting-label">{{
+                            $t('settings.theme.label')
+                        }}</label>
+                        <el-radio-group v-model="selectedTheme" @change="setTheme">
+                            <el-radio-button
+                                v-for="opt in themeOptions"
+                                :key="opt.value"
+                                :value="opt.value"
+                            >
+                                {{ opt.label }}
+                            </el-radio-button>
+                        </el-radio-group>
+                    </div>
 
-                <div class="profile__luogu-login-controls">
-                    <el-select
-                        v-model="luoguCredentialDuration"
-                        class="profile__luogu-login-select"
-                    >
-                        <el-option
-                            v-for="option in luoguDurationOptions"
-                            :key="option"
-                            :value="option"
-                            :label="$t(`binding.luogu_login.duration.${option}`)"
-                        />
-                    </el-select>
-                    <el-button
-                        type="primary"
-                        :loading="luoguCredentialLoading"
-                        @click="handleCreateLuoguCredential"
-                    >
-                        {{
-                            luoguCredentialLoading
-                                ? $t('binding.luogu_login.creating')
-                                : $t('binding.luogu_login.create')
-                        }}
-                    </el-button>
-                </div>
+                    <div class="profile__setting-row">
+                        <label class="profile__setting-label">{{
+                            $t('settings.language.label')
+                        }}</label>
+                        <el-radio-group :model-value="locale" @change="changeLocale">
+                            <el-radio-button
+                                v-for="loc in localeOptions"
+                                :key="loc.code"
+                                :value="loc.code"
+                                :disabled="loc.disabled"
+                            >
+                                {{ loc.label }}
+                            </el-radio-button>
+                        </el-radio-group>
+                    </div>
+                </el-tab-pane>
 
-                <div
-                    v-if="luoguCredentialToken"
-                    class="profile__bind-code-value"
-                    @click="copyLuoguCredential"
-                >
-                    <code>{{ luoguCredentialToken }}</code>
-                    <el-icon><Copy /></el-icon>
-                </div>
-                <p v-if="luoguCredentialExpiresAt" class="profile__bind-code-hint">
-                    {{
-                        $t('binding.luogu_login.expires_at', {
-                            time: new Date(luoguCredentialExpiresAt).toLocaleString()
-                        })
-                    }}
-                </p>
-            </div>
+                <el-tab-pane :label="$t('profile.tabs.security')" name="security">
+                    <h2 class="profile__section-title">{{ $t('profile.security.title') }}</h2>
+
+                    <div class="profile__security-block">
+                        <h3 class="profile__security-subtitle">
+                            {{ $t('profile.security.change_password') }}
+                        </h3>
+                        <el-form class="profile__form" @submit.prevent="handleChangePassword">
+                            <el-form-item :label="$t('profile.security.current_password')">
+                                <el-input
+                                    v-model="passwordForm.currentPassword"
+                                    type="password"
+                                    show-password
+                                />
+                            </el-form-item>
+                            <el-form-item :label="$t('profile.security.new_password')">
+                                <el-input
+                                    v-model="passwordForm.newPassword"
+                                    type="password"
+                                    show-password
+                                />
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button
+                                    type="primary"
+                                    native-type="submit"
+                                    :loading="changingPassword"
+                                >
+                                    {{ $t('profile.security.update_password') }}
+                                </el-button>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+
+                    <div class="profile__security-block">
+                        <h3 class="profile__security-subtitle">
+                            {{ $t('profile.security.twofactor') }}
+                        </h3>
+                        <p class="profile__section-desc">
+                            {{
+                                twoFactorEnabled
+                                    ? $t('profile.security.enabled_with', {
+                                          method: twoFactorMethodLabel
+                                      })
+                                    : $t('profile.security.not_enabled')
+                            }}
+                        </p>
+
+                        <div v-if="!twoFactorEnabled" class="profile__security-actions">
+                            <el-button
+                                :loading="requestingEmailOtp"
+                                @click="handleRequestEmailOtpEnable"
+                            >
+                                {{ $t('profile.security.enable_email_otp') }}
+                            </el-button>
+                            <el-button :loading="requestingTotp" @click="handleRequestTotpSetup">
+                                {{ $t('profile.security.enable_totp') }}
+                            </el-button>
+                        </div>
+
+                        <div v-if="emailOtpPending" class="profile__security-inline-form">
+                            <el-input
+                                v-model="emailOtpCode"
+                                :placeholder="$t('profile.security.otp_code_placeholder')"
+                            />
+                            <el-button
+                                type="primary"
+                                :loading="confirmingEmailOtp"
+                                @click="handleConfirmEmailOtpEnable"
+                            >
+                                {{ $t('profile.security.confirm_enable') }}
+                            </el-button>
+                        </div>
+
+                        <div v-if="totpQrCode" class="profile__totp-setup">
+                            <img
+                                :src="totpQrCode"
+                                :alt="$t('profile.security.totp_qr_alt')"
+                                class="profile__totp-qr"
+                            />
+                            <p class="profile__bind-code-hint">
+                                {{ $t('profile.security.totp_scan_hint') }}
+                            </p>
+                            <div class="profile__security-inline-form">
+                                <el-input
+                                    v-model="totpCode"
+                                    :placeholder="$t('profile.security.otp_code_placeholder')"
+                                />
+                                <el-button
+                                    type="primary"
+                                    :loading="confirmingTotp"
+                                    @click="handleConfirmTotpEnable"
+                                >
+                                    {{ $t('profile.security.confirm_enable') }}
+                                </el-button>
+                            </div>
+                        </div>
+
+                        <div v-if="twoFactorEnabled" class="profile__security-inline-form">
+                            <el-input
+                                v-model="disable2faPassword"
+                                type="password"
+                                show-password
+                                :placeholder="$t('profile.security.password_for_disable')"
+                            />
+                            <el-button
+                                type="danger"
+                                :loading="disabling2fa"
+                                @click="handleDisable2fa"
+                            >
+                                {{ $t('profile.security.disable_2fa') }}
+                            </el-button>
+                        </div>
+                    </div>
+
+                    <div class="profile__security-block">
+                        <h3 class="profile__security-subtitle">
+                            {{ $t('profile.security.passkeys') }}
+                        </h3>
+                        <div class="profile__security-inline-form">
+                            <el-input
+                                v-model="newPasskeyName"
+                                :placeholder="$t('profile.security.passkey_name_placeholder')"
+                            />
+                            <el-button
+                                type="primary"
+                                :loading="registeringPasskey"
+                                @click="handleRegisterPasskey"
+                            >
+                                {{ $t('profile.security.add_passkey') }}
+                            </el-button>
+                        </div>
+                        <div v-if="passkeys.length" class="profile__bindings">
+                            <div
+                                v-for="item in passkeys"
+                                :key="item.id"
+                                class="profile__binding-item"
+                            >
+                                <div class="profile__binding-info">
+                                    <span class="profile__binding-platform">{{ item.name }}</span>
+                                    <span class="profile__binding-uid">{{
+                                        new Date(item.createdAt).toLocaleString()
+                                    }}</span>
+                                </div>
+                                <el-button
+                                    text
+                                    type="danger"
+                                    :loading="removingPasskeyId === item.id"
+                                    @click="handleDeletePasskey(item.id)"
+                                >
+                                    {{ $t('binding.unlink') }}
+                                </el-button>
+                            </div>
+                        </div>
+                        <p v-else class="profile__no-bindings">
+                            {{ $t('profile.security.no_passkeys') }}
+                        </p>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
 
             <!-- Bind Dialog -->
             <el-dialog
@@ -322,37 +589,6 @@
                     </div>
                 </div>
             </el-dialog>
-
-            <!-- Settings section -->
-            <el-divider />
-            <h2 class="profile__section-title">{{ $t('settings.title') }}</h2>
-
-            <div class="profile__setting-row">
-                <label class="profile__setting-label">{{ $t('settings.theme.label') }}</label>
-                <el-radio-group v-model="selectedTheme" @change="setTheme">
-                    <el-radio-button
-                        v-for="opt in themeOptions"
-                        :key="opt.value"
-                        :value="opt.value"
-                    >
-                        {{ opt.label }}
-                    </el-radio-button>
-                </el-radio-group>
-            </div>
-
-            <div class="profile__setting-row">
-                <label class="profile__setting-label">{{ $t('settings.language.label') }}</label>
-                <el-radio-group :model-value="locale" @change="changeLocale">
-                    <el-radio-button
-                        v-for="loc in localeOptions"
-                        :key="loc.code"
-                        :value="loc.code"
-                        :disabled="loc.disabled"
-                    >
-                        {{ loc.label }}
-                    </el-radio-button>
-                </el-radio-group>
-            </div>
         </template>
     </div>
 </template>
@@ -374,6 +610,8 @@ function isLocaleCode(value: string): value is LocaleCode {
     return localeCodes.includes(value as LocaleCode);
 }
 
+type LinkedPlatform = 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google';
+
 interface ProfileData {
     email?: string;
     emailVerified?: boolean;
@@ -382,6 +620,8 @@ interface ProfileData {
     bio?: string;
     homepage?: string;
     avatarUrl?: string;
+    publicLinkedPlatforms?: LinkedPlatform[];
+    publicLinkedPlatformsConfigured?: boolean;
     theme?: string;
     locale?: string;
 }
@@ -394,6 +634,7 @@ const colorMode = useColorMode();
 const token = useCookie('auth_token');
 const saving = ref(false);
 const sendingVerifyEmail = ref(false);
+const activeTab = ref('basic');
 
 const { data: userData, pending } = await useFetch<ProfileData>('/api/auth/me', {
     headers: { Authorization: `Bearer ${token.value}` },
@@ -415,22 +656,31 @@ const form = reactive({
     avatarUrl: d?.avatarUrl || ''
 });
 const selectedTheme = ref(d?.theme || 'system');
+const visiblePlatforms = ref<LinkedPlatform[]>([]);
+const originalVisiblePlatforms = ref<LinkedPlatform[]>([]);
+const publicLinkedPlatformsFromServer = ref<LinkedPlatform[]>(
+    Array.isArray(d?.publicLinkedPlatforms) ? d.publicLinkedPlatforms : []
+);
+const publicLinkedPlatformsConfigured = ref(Boolean(d?.publicLinkedPlatformsConfigured));
 colorMode.preference = selectedTheme.value;
 if (d?.locale && isLocaleCode(d.locale) && d.locale !== locale.value) {
     setLocale(d.locale);
 }
 
 async function handleSave() {
-    const body: Record<string, string> = {
+    const body: Record<string, unknown> = {
         displayName: form.displayName,
         bio: form.bio,
         homepage: form.homepage,
         avatarUrl: form.avatarUrl
     };
+    let changedUsername: string | null = null;
+    let changedEmail: string | null = null;
 
     const trimmedEmail = form.email.trim().toLowerCase();
     if (trimmedEmail !== originalEmail.value) {
         body.email = trimmedEmail;
+        changedEmail = trimmedEmail;
     }
 
     const trimmedUsername = normalizeUsername(form.username);
@@ -440,6 +690,21 @@ async function handleSave() {
             return;
         }
         body.username = trimmedUsername;
+        changedUsername = trimmedUsername;
+    }
+
+    const availablePlatforms = new Set(bindings.value.map(account => account.platform));
+    const normalizedVisiblePlatforms = Array.from(
+        new Set(visiblePlatforms.value.filter(platform => availablePlatforms.has(platform)))
+    ).sort();
+    const normalizedOriginalVisiblePlatforms = [...originalVisiblePlatforms.value].sort();
+    if (
+        normalizedVisiblePlatforms.length !== normalizedOriginalVisiblePlatforms.length ||
+        normalizedVisiblePlatforms.some((platform, index) => {
+            return normalizedOriginalVisiblePlatforms[index] !== platform;
+        })
+    ) {
+        body.publicLinkedPlatforms = normalizedVisiblePlatforms;
     }
 
     saving.value = true;
@@ -449,15 +714,22 @@ async function handleSave() {
             headers: { Authorization: `Bearer ${token.value}` },
             body
         });
-        if (body.username) {
-            originalUsername.value = body.username;
-            form.username = body.username;
+        if (changedUsername) {
+            originalUsername.value = changedUsername;
+            form.username = changedUsername;
         }
-        if (body.email && updated.email) {
+        if (changedEmail && updated.email) {
             originalEmail.value = updated.email;
             form.email = updated.email;
         }
         emailVerified.value = Boolean(updated.emailVerified);
+        if (Array.isArray(body.publicLinkedPlatforms)) {
+            const savedPlatforms = body.publicLinkedPlatforms as LinkedPlatform[];
+            originalVisiblePlatforms.value = [...savedPlatforms];
+            publicLinkedPlatformsFromServer.value = [...savedPlatforms];
+            visiblePlatforms.value = [...savedPlatforms];
+            publicLinkedPlatformsConfigured.value = true;
+        }
         ElMessage.success(t('profile.updated'));
     } catch (e: unknown) {
         const err = e as { data?: { message?: string } };
@@ -527,10 +799,301 @@ const localeOptions = computed(() => [
     { code: 'ja', label: t('settings.language.ja'), disabled: false }
 ]);
 
+const passwordForm = reactive({
+    currentPassword: '',
+    newPassword: ''
+});
+const changingPassword = ref(false);
+
+const twoFactorEnabled = ref(false);
+const twoFactorMethod = ref('');
+const emailOtpPending = ref(false);
+const emailOtpCode = ref('');
+const requestingEmailOtp = ref(false);
+const confirmingEmailOtp = ref(false);
+const requestingTotp = ref(false);
+const confirmingTotp = ref(false);
+const disabling2fa = ref(false);
+const disable2faPassword = ref('');
+const totpQrCode = ref('');
+const totpCode = ref('');
+
+interface PasskeyItem {
+    id: string;
+    name: string;
+    createdAt: string;
+}
+
+const passkeys = ref<PasskeyItem[]>([]);
+const newPasskeyName = ref('My Passkey');
+const registeringPasskey = ref(false);
+const removingPasskeyId = ref('');
+
+const twoFactorMethodLabel = computed(() => {
+    if (twoFactorMethod.value === 'email_otp') return t('profile.security.method_email_otp');
+    if (twoFactorMethod.value === 'totp') return t('profile.security.method_totp');
+    return '-';
+});
+
+function toBase64Url(bytes: Uint8Array): string {
+    return btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/g, '');
+}
+
+function fromBase64Url(value: string): Uint8Array {
+    const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (normalized.length % 4 || 4)) % 4);
+    const binary = atob(normalized + padding);
+    return Uint8Array.from(binary, ch => ch.charCodeAt(0));
+}
+
+function toArrayBuffer(value: string): ArrayBuffer {
+    const bytes = fromBase64Url(value);
+    return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
+async function fetchSecurityStatus() {
+    try {
+        const data = await $fetch<{ twoFactorEnabled: boolean; twoFactorMethod: string | null }>(
+            '/api/auth/2fa/status',
+            { headers: { Authorization: `Bearer ${token.value}` } }
+        );
+        twoFactorEnabled.value = data.twoFactorEnabled;
+        twoFactorMethod.value = data.twoFactorMethod || '';
+    } catch {
+        // silent
+    }
+}
+
+async function fetchPasskeys() {
+    try {
+        passkeys.value = await $fetch<PasskeyItem[]>('/api/auth/passkey/credentials/index', {
+            headers: { Authorization: `Bearer ${token.value}` }
+        });
+    } catch {
+        // silent
+    }
+}
+
+await Promise.all([fetchSecurityStatus(), fetchPasskeys()]);
+
+async function handleChangePassword() {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) return;
+    changingPassword.value = true;
+    try {
+        await $fetch('/api/auth/password/change', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            body: {
+                currentPassword: passwordForm.currentPassword,
+                newPassword: passwordForm.newPassword
+            }
+        });
+        passwordForm.currentPassword = '';
+        passwordForm.newPassword = '';
+        ElMessage.success(t('profile.security.password_updated'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('profile.update_error'));
+    } finally {
+        changingPassword.value = false;
+    }
+}
+
+async function handleRequestEmailOtpEnable() {
+    requestingEmailOtp.value = true;
+    try {
+        await $fetch('/api/auth/2fa/setup/email/request', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` }
+        });
+        emailOtpPending.value = true;
+        ElMessage.success(t('profile.security.otp_sent'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('profile.update_error'));
+    } finally {
+        requestingEmailOtp.value = false;
+    }
+}
+
+async function handleConfirmEmailOtpEnable() {
+    if (!emailOtpCode.value) return;
+    confirmingEmailOtp.value = true;
+    try {
+        await $fetch('/api/auth/2fa/setup/email/confirm', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            body: { code: emailOtpCode.value }
+        });
+        emailOtpPending.value = false;
+        emailOtpCode.value = '';
+        await fetchSecurityStatus();
+        ElMessage.success(t('profile.security.2fa_enabled'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('profile.update_error'));
+    } finally {
+        confirmingEmailOtp.value = false;
+    }
+}
+
+async function handleRequestTotpSetup() {
+    requestingTotp.value = true;
+    try {
+        const data = await $fetch<{ qrCodeDataUrl: string }>('/api/auth/2fa/setup/totp/request', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` }
+        });
+        totpQrCode.value = data.qrCodeDataUrl;
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('profile.update_error'));
+    } finally {
+        requestingTotp.value = false;
+    }
+}
+
+async function handleConfirmTotpEnable() {
+    if (!totpCode.value) return;
+    confirmingTotp.value = true;
+    try {
+        await $fetch('/api/auth/2fa/setup/totp/confirm', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            body: { code: totpCode.value }
+        });
+        totpCode.value = '';
+        totpQrCode.value = '';
+        await fetchSecurityStatus();
+        ElMessage.success(t('profile.security.2fa_enabled'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('profile.update_error'));
+    } finally {
+        confirmingTotp.value = false;
+    }
+}
+
+async function handleDisable2fa() {
+    if (!disable2faPassword.value) return;
+    disabling2fa.value = true;
+    try {
+        await $fetch('/api/auth/2fa/disable', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            body: { password: disable2faPassword.value }
+        });
+        disable2faPassword.value = '';
+        await fetchSecurityStatus();
+        ElMessage.success(t('profile.security.2fa_disabled'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('profile.update_error'));
+    } finally {
+        disabling2fa.value = false;
+    }
+}
+
+async function handleRegisterPasskey() {
+    if (!window.PublicKeyCredential) {
+        ElMessage.error(t('auth.login.passkey_not_supported'));
+        return;
+    }
+    registeringPasskey.value = true;
+    try {
+        const options = await $fetch<{
+            challenge: string;
+            rp: { name: string; id?: string };
+            user: { id: string; name: string; displayName: string };
+            pubKeyCredParams: PublicKeyCredentialParameters[];
+            timeout?: number;
+            attestation?: AttestationConveyancePreference;
+            authenticatorSelection?: AuthenticatorSelectionCriteria;
+            excludeCredentials?: Array<{
+                id: string;
+                type: PublicKeyCredentialType;
+                transports?: AuthenticatorTransport[];
+            }>;
+        }>('/api/auth/passkey/register/options', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` }
+        });
+
+        const publicKey: PublicKeyCredentialCreationOptions = {
+            ...options,
+            challenge: toArrayBuffer(options.challenge),
+            user: {
+                ...options.user,
+                id: toArrayBuffer(options.user.id)
+            },
+            excludeCredentials: options.excludeCredentials?.map(item => ({
+                ...item,
+                id: toArrayBuffer(item.id)
+            }))
+        };
+
+        const credential = (await navigator.credentials.create({
+            publicKey
+        })) as PublicKeyCredential | null;
+
+        if (!credential) throw new Error('No credential returned');
+
+        const attestation = credential.response as AuthenticatorAttestationResponse;
+        const response = {
+            id: credential.id,
+            rawId: toBase64Url(new Uint8Array(credential.rawId)),
+            type: credential.type,
+            response: {
+                clientDataJSON: toBase64Url(new Uint8Array(attestation.clientDataJSON)),
+                attestationObject: toBase64Url(new Uint8Array(attestation.attestationObject)),
+                transports: attestation.getTransports ? attestation.getTransports() : []
+            },
+            clientExtensionResults: credential.getClientExtensionResults()
+        };
+
+        await $fetch('/api/auth/passkey/register/verify', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            body: {
+                name: newPasskeyName.value || 'My Passkey',
+                response
+            }
+        });
+
+        await fetchPasskeys();
+        ElMessage.success(t('profile.security.passkey_added'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string }; message?: string };
+        ElMessage.error(err.data?.message || err.message || t('profile.update_error'));
+    } finally {
+        registeringPasskey.value = false;
+    }
+}
+
+async function handleDeletePasskey(id: string) {
+    removingPasskeyId.value = id;
+    try {
+        await $fetch(`/api/auth/passkey/credentials/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token.value}` }
+        });
+        await fetchPasskeys();
+        ElMessage.success(t('binding.unlink_success'));
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('binding.unlink_error'));
+    } finally {
+        removingPasskeyId.value = '';
+    }
+}
+
 // --- Linked Accounts ---
 interface LinkedAccount {
     id: string;
-    platform: 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google';
+    platform: LinkedPlatform;
     platformUid: string;
     platformUsername: string | null;
     verifiedAt: string;
@@ -615,6 +1178,20 @@ async function fetchBindings() {
         bindings.value = await $fetch<LinkedAccount[]>('/api/account/bindings', {
             headers: { Authorization: `Bearer ${token.value}` }
         });
+
+        const currentPlatforms = bindings.value.map(account => account.platform);
+        if (!publicLinkedPlatformsConfigured.value) {
+            visiblePlatforms.value = [...currentPlatforms];
+            originalVisiblePlatforms.value = [...currentPlatforms];
+            return;
+        }
+
+        const currentSet = new Set(currentPlatforms);
+        const sanitized = publicLinkedPlatformsFromServer.value.filter(platform => {
+            return currentSet.has(platform);
+        });
+        visiblePlatforms.value = [...sanitized];
+        originalVisiblePlatforms.value = [...sanitized];
     } catch {
         // silent
     }
@@ -761,6 +1338,10 @@ async function handleUnlink(platform: string) {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token.value}` }
         });
+        visiblePlatforms.value = visiblePlatforms.value.filter(item => item !== platform);
+        originalVisiblePlatforms.value = originalVisiblePlatforms.value.filter(
+            item => item !== platform
+        );
         ElMessage.success(t('binding.unlink_success'));
         await fetchBindings();
     } catch (e: unknown) {
@@ -809,7 +1390,7 @@ function copyLuoguCredential() {
 
 <style scoped lang="scss">
 .profile {
-    max-width: 580px;
+    max-width: 760px;
 
     &__title {
         font-size: 22px;
@@ -862,6 +1443,10 @@ function copyLuoguCredential() {
         max-width: 100%;
     }
 
+    &__tabs {
+        margin-top: 8px;
+    }
+
     &__hint {
         font-weight: 400;
         color: var(--text-muted);
@@ -891,8 +1476,56 @@ function copyLuoguCredential() {
         margin-bottom: 16px;
     }
 
+    &__section-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: -8px 0 14px;
+    }
+
     &__setting-row {
         margin-bottom: 18px;
+    }
+
+    &__security-block {
+        margin-bottom: 18px;
+        padding: 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+    }
+
+    &__security-subtitle {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    &__security-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    &__security-inline-form {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    &__totp-setup {
+        margin-top: 10px;
+    }
+
+    &__totp-qr {
+        width: 172px;
+        height: 172px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: #fff;
+        padding: 6px;
     }
 
     &__setting-label {
@@ -905,6 +1538,36 @@ function copyLuoguCredential() {
 
     &__bindings {
         margin-bottom: 14px;
+    }
+
+    &__visibility-panel {
+        margin-bottom: 16px;
+    }
+
+    &__visibility-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__visibility-item {
+        width: 100%;
+        margin: 0;
+        height: auto;
+        padding: 10px 12px;
+
+        :deep(.el-checkbox__label) {
+            width: 100%;
+            padding-left: 8px;
+        }
+    }
+
+    &__visibility-content {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 10px;
     }
 
     &__binding-item {

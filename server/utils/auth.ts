@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken';
 import type { H3Event } from 'h3';
 
+export function signAuthToken(userId: string): string {
+    const config = useRuntimeConfig();
+    return jwt.sign({ userId }, config.jwtSecret, { expiresIn: '7d' });
+}
+
 export function getUserIdFromEvent(event: H3Event): string {
     const auth = getHeader(event, 'authorization');
     if (!auth?.startsWith('Bearer ')) {

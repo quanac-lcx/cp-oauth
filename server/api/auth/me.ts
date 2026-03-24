@@ -16,6 +16,7 @@ function getBaseUrl(event: Parameters<typeof getRequestURL>[0]): string {
 
 export default defineEventHandler(async event => {
     const userId = getUserIdFromEvent(event);
+    const allowedPublicPlatforms = new Set(['luogu', 'atcoder', 'codeforces', 'github', 'google']);
 
     if (event.method === 'GET') {
         const user = await prisma.user.findUnique({
@@ -30,6 +31,8 @@ export default defineEventHandler(async event => {
                 avatarUrl: true,
                 role: true,
                 emailVerified: true,
+                publicLinkedPlatforms: true,
+                publicLinkedPlatformsConfigured: true,
                 theme: true,
                 locale: true
             }
@@ -42,7 +45,7 @@ export default defineEventHandler(async event => {
         const body = await readBody(event);
         const { displayName, bio, homepage, avatarUrl, theme, locale } = body;
 
-        const data: Record<string, string | boolean> = {};
+        const data: Record<string, unknown> = {};
         if (body.username !== undefined) {
             const username = normalizeUsername(body.username);
             if (!isValidUsername(username)) {
@@ -111,6 +114,23 @@ export default defineEventHandler(async event => {
         }
         if (theme !== undefined) data.theme = theme;
         if (locale !== undefined) data.locale = locale;
+        if (body.publicLinkedPlatforms !== undefined) {
+            if (!Array.isArray(body.publicLinkedPlatforms)) {
+                throw createError({
+                    statusCode: 400,
+                    message: 'publicLinkedPlatforms must be an array'
+                });
+            }
+            const normalized = Array.from(
+                new Set(
+                    body.publicLinkedPlatforms
+                        .map(item => String(item).trim().toLowerCase())
+                        .filter(item => allowedPublicPlatforms.has(item))
+                )
+            );
+            data.publicLinkedPlatforms = normalized;
+            data.publicLinkedPlatformsConfigured = true;
+        }
 
         const user = await prisma.user.update({
             where: { id: userId },
@@ -125,6 +145,8 @@ export default defineEventHandler(async event => {
                 avatarUrl: true,
                 role: true,
                 emailVerified: true,
+                publicLinkedPlatforms: true,
+                publicLinkedPlatformsConfigured: true,
                 theme: true,
                 locale: true
             }

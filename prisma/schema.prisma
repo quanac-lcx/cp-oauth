@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -19,6 +20,13 @@ model User {
   role           String   @default("user")
   emailVerified  Boolean  @default(false) @map("email_verified")
   emailVerifyToken String? @unique @map("email_verify_token")
+  publicLinkedPlatforms String[] @default([]) @map("public_linked_platforms")
+  publicLinkedPlatformsConfigured Boolean @default(false) @map("public_linked_platforms_configured")
+  passwordResetToken String? @unique @map("password_reset_token")
+  passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
+  twoFactorEnabled Boolean @default(false) @map("two_factor_enabled")
+  twoFactorMethod String? @map("two_factor_method")
+  totpSecret String? @map("totp_secret") @db.Text
   theme          String   @default("system")
   locale         String   @default("en")
   createdAt      DateTime @default(now()) @map("created_at")
@@ -28,8 +36,25 @@ model User {
   authorizationCodes OAuthAuthorizationCode[]
   accessTokens      OAuthAccessToken[]
   linkedAccounts    LinkedAccount[]
+  passkeyCredentials PasskeyCredential[]
 
   @@map("users")
+}
+
+model PasskeyCredential {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  name         String
+  credentialId String   @unique @map("credential_id")
+  publicKey    String   @map("public_key") @db.Text
+  counter      Int      @default(0)
+  transports   String[] @default([])
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("passkey_credentials")
 }
 
 model SystemConfig {

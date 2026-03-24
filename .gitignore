@@ -7,3 +7,6 @@ dist
 .env
 .env.*
 !.env.example
+.claude
+.idea
+generated

@@ -1,8 +1,16 @@
 import { consola } from 'consola';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import prisma from '~/server/utils/prisma';
 import { getConfig } from '~/server/utils/config';
+import { sendTwoFactorEmailCode } from '~/server/utils/mailer';
+import { signAuthToken } from '~/server/utils/auth';
+import {
+    build2faLoginChallengeKey,
+    generateSixDigitCode,
+    hashCode,
+    setRedisJson
+} from '~/server/utils/security';
 
 const logger = consola.withTag('auth:login');
 
@@ -46,8 +54,43 @@ export default defineEventHandler(async event => {
         throw createError({ statusCode: 401, message: 'Invalid credentials' });
     }
 
-    const config = useRuntimeConfig();
-    const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '7d' });
+    if (user.twoFactorEnabled && user.twoFactorMethod) {
+        const challengeId = crypto.randomUUID();
+
+        if (user.twoFactorMethod === 'email_otp') {
+            const code = generateSixDigitCode();
+            const sent = await sendTwoFactorEmailCode(user.email, code);
+            if (!sent) {
+                throw createError({ statusCode: 503, message: 'SMTP is not configured' });
+            }
+            await setRedisJson(
+                build2faLoginChallengeKey(challengeId),
+                {
+                    userId: user.id,
+                    method: 'email_otp',
+                    emailCodeHash: await hashCode(code)
+                },
+                600
+            );
+        } else {
+            await setRedisJson(
+                build2faLoginChallengeKey(challengeId),
+                {
+                    userId: user.id,
+                    method: 'totp'
+                },
+                600
+            );
+        }
+
+        return {
+            requiresTwoFactor: true,
+            method: user.twoFactorMethod,
+            challengeId
+        };
+    }
+
+    const token = signAuthToken(user.id);
 
     logger.success(`Login successful: ${user.username} (${user.id})`);
 
