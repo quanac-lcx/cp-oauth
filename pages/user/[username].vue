@@ -123,7 +123,8 @@ const platformProfileUrls: Record<string, (uid: string, uname: string | null) =>
     luogu: uid => `https://www.luogu.com.cn/user/${uid}`,
     codeforces: (_uid, uname) => (uname ? `https://codeforces.com/profile/${uname}` : null),
     atcoder: (_uid, uname) => (uname ? `https://atcoder.jp/users/${uname}` : null),
-    github: (_uid, uname) => (uname ? `https://github.com/${uname}` : null)
+    github: (_uid, uname) => (uname ? `https://github.com/${uname}` : null),
+    clist: (_uid, uname) => (uname ? `https://clist.by/coder/${uname}/` : null)
 };
 
 function getProfileUrl(account: {
