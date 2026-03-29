@@ -10,6 +10,7 @@ export const SCOPES = {
     'link:codeforces': 'Read linked Codeforces account info',
     'link:github': 'Read linked GitHub account info',
     'link:google': 'Read linked Google account info',
+    'link:clist': 'Read linked Clist account info',
     'cp:summary': 'Aggregated competitive programming stats',
     'cp:details': 'Full submission history and rating trends'
 } as const;

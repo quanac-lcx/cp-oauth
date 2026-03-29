@@ -48,6 +48,7 @@
             "with_codeforces": "使用 Codeforces 登录",
             "with_github": "使用 GitHub 登录",
             "with_google": "使用 Google 登录",
+            "with_clist": "使用 Clist.by 登录",
             "with_luogu": "使用洛谷登录",
             "thirdparty_auto_register_hint": "第三方登录在未注册时会自动创建账号。",
             "passkey_email_required": "请先输入邮箱后再使用 Passkey 登录",
@@ -81,6 +82,10 @@
             "google_callback_loading": "正在完成 Google 授权...",
             "google_callback_success": "登录成功，正在跳转...",
             "google_callback_invalid": "无效的授权回调参数",
+            "clist_callback_title": "Clist.by 登录",
+            "clist_callback_loading": "正在完成 Clist.by 授权...",
+            "clist_callback_success": "登录成功，正在跳转...",
+            "clist_callback_invalid": "无效的授权回调参数",
             "verified": "邮箱验证成功，请登录。",
             "footer": "还没有账号？",
             "register_link": "注册",
@@ -117,6 +122,7 @@
             "with_codeforces": "使用 Codeforces 注册",
             "with_github": "使用 GitHub 注册",
             "with_google": "使用 Google 注册",
+            "with_clist": "使用 Clist.by 注册",
             "with_luogu": "使用洛谷注册",
             "turnstile_required_for_thirdparty": "请先完成人机验证后再使用第三方注册",
             "luogu_step1": "输入你的洛谷 UID，获取验证码。",
@@ -234,6 +240,7 @@
         "codeforces_bind_success": "Codeforces 账号绑定成功！",
         "github_bind_success": "GitHub 账号绑定成功！",
         "google_bind_success": "Google 账号绑定成功！",
+        "clist_bind_success": "Clist.by 账号绑定成功！",
         "already_linked_platform": "你已经关联了 {platform} 账号",
         "luogu_login": {
             "title": "洛谷剪贴板登录凭证",
@@ -267,7 +274,8 @@
             "atcoder": "AtCoder",
             "codeforces": "Codeforces",
             "github": "GitHub",
-            "google": "Google"
+            "google": "Google",
+            "clist": "Clist.by"
         }
     },
     "settings": {
@@ -305,6 +313,7 @@
             "link_codeforces": "Codeforces — 读取您关联的 Codeforces 账号信息",
             "link_github": "GitHub — 读取您关联的 GitHub 账号信息",
             "link_google": "Google — 读取您关联的 Google 账号信息",
+            "link_clist": "Clist.by — 读取您关联的 Clist.by 账号信息",
             "cp_summary": "竞赛概要 — 汇总的竞赛编程统计数据",
             "cp_details": "竞赛详情 — 完整的提交记录和评级趋势"
         }
@@ -358,6 +367,7 @@
             "link_codeforces": "读取关联的 Codeforces 账号信息（UID、用户名）",
             "link_github": "读取关联的 GitHub 账号信息（UID、用户名）",
             "link_google": "读取关联的 Google 账号信息（UID、用户名）",
+            "link_clist": "读取关联的 Clist.by 账号信息（UID、用户名）",
             "cp_summary": "关联的 OJ 账号、解题总数、最高评级（未完成，当前返回占位数据）",
             "cp_details": "完整的提交记录和评级趋势数据（未完成，当前返回占位数据）"
         },
@@ -418,6 +428,9 @@
             "codeforces": "Codeforces OAuth",
             "codeforces_client_id": "Codeforces Client ID",
             "codeforces_client_secret": "Codeforces Client Secret",
+            "clist": "Clist.by OAuth",
+            "clist_client_id": "Clist.by Client ID",
+            "clist_client_secret": "Clist.by Client Secret",
             "github": "GitHub OAuth",
             "github_client_id": "GitHub Client ID",
             "github_client_secret": "GitHub Client Secret",

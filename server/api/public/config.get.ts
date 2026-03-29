@@ -10,6 +10,7 @@ export default defineEventHandler(async () => {
     const codeforcesClientId = await getConfig('codeforces_client_id');
     const githubClientId = await getConfig('github_client_id');
     const googleClientId = await getConfig('google_client_id');
+    const clistClientId = await getConfig('clist_client_id');
 
     const parsedHomeRecentUsersCount = Number.parseInt(homeRecentUsersCountRaw, 10);
     const recentUsersCount = Number.isFinite(parsedHomeRecentUsersCount)
@@ -24,6 +25,7 @@ export default defineEventHandler(async () => {
         turnstileSiteKey,
         codeforcesLoginEnabled: codeforcesClientId.trim().length > 0,
         githubLoginEnabled: githubClientId.trim().length > 0,
-        googleLoginEnabled: googleClientId.trim().length > 0
+        googleLoginEnabled: googleClientId.trim().length > 0,
+        clistLoginEnabled: clistClientId.trim().length > 0
     };
 });

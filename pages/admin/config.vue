@@ -76,6 +76,15 @@
                 <el-input v-model="form.codeforces_client_secret" type="password" show-password />
             </el-form-item>
 
+            <!-- Clist OAuth -->
+            <h2 class="admin__section-title">{{ $t('admin.config.clist') }}</h2>
+            <el-form-item :label="$t('admin.config.clist_client_id')">
+                <el-input v-model="form.clist_client_id" />
+            </el-form-item>
+            <el-form-item :label="$t('admin.config.clist_client_secret')">
+                <el-input v-model="form.clist_client_secret" type="password" show-password />
+            </el-form-item>
+
             <!-- GitHub OAuth -->
             <h2 class="admin__section-title">{{ $t('admin.config.github') }}</h2>
             <el-form-item :label="$t('admin.config.github_client_id')">
@@ -134,6 +143,8 @@ const form = reactive({
     turnstile_secret_key: '',
     codeforces_client_id: '',
     codeforces_client_secret: '',
+    clist_client_id: '',
+    clist_client_secret: '',
     github_client_id: '',
     github_client_secret: '',
     google_client_id: '',

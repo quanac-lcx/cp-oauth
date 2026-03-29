@@ -48,6 +48,7 @@
             "with_codeforces": "Codeforces でログイン",
             "with_github": "GitHub でログイン",
             "with_google": "Google でログイン",
+            "with_clist": "Clist.by でログイン",
             "with_luogu": "Luogu でログイン",
             "thirdparty_auto_register_hint": "サードパーティログインでは、未登録の場合に自動でアカウントが作成されます。",
             "passkey_email_required": "Passkey ログインの前にメールを入力してください",
@@ -81,6 +82,10 @@
             "google_callback_loading": "Google 認可を完了しています...",
             "google_callback_success": "ログイン成功、リダイレクトしています...",
             "google_callback_invalid": "認可コールバックのパラメータが無効です",
+            "clist_callback_title": "Clist.by ログイン",
+            "clist_callback_loading": "Clist.by 認可を完了しています...",
+            "clist_callback_success": "ログイン成功、リダイレクトしています...",
+            "clist_callback_invalid": "認可コールバックのパラメータが無効です",
             "verified": "メール認証が完了しました。ログインしてください。",
             "footer": "アカウントをお持ちでないですか？",
             "register_link": "登録",
@@ -117,6 +122,7 @@
             "with_codeforces": "Codeforces で登録",
             "with_github": "GitHub で登録",
             "with_google": "Google で登録",
+            "with_clist": "Clist.by で登録",
             "with_luogu": "Luogu で登録",
             "turnstile_required_for_thirdparty": "サードパーティ登録を使う前に CAPTCHA 認証を完了してください",
             "luogu_step1": "Luogu UID を入力して認証コードを取得してください。",
@@ -233,6 +239,7 @@
         "codeforces_bind_success": "Codeforces アカウントを連携しました！",
         "github_bind_success": "GitHub アカウントを連携しました！",
         "google_bind_success": "Google アカウントを連携しました！",
+        "clist_bind_success": "Clist.by アカウントを連携しました！",
         "already_linked_platform": "{platform} アカウントは既に連携されています",
         "luogu_login": {
             "title": "Luogu クリップボードログイン認証情報",
@@ -266,7 +273,8 @@
             "atcoder": "AtCoder",
             "codeforces": "Codeforces",
             "github": "GitHub",
-            "google": "Google"
+            "google": "Google",
+            "clist": "Clist.by"
         }
     },
     "settings": {
@@ -304,6 +312,7 @@
             "link_codeforces": "Codeforces — 連携済みの Codeforces アカウント情報を読み取り",
             "link_github": "GitHub — 連携済みの GitHub アカウント情報を読み取り",
             "link_google": "Google — 連携済みの Google アカウント情報を読み取り",
+            "link_clist": "Clist.by — 連携済みの Clist.by アカウント情報を読み取り",
             "cp_summary": "CP概要 — 競技プログラミング統計の集計データ",
             "cp_details": "CP詳細 — 完全な提出履歴とレーティング推移"
         }
@@ -357,6 +366,7 @@
             "link_codeforces": "連携済みの Codeforces アカウント情報を読み取り（UID、ユーザー名）",
             "link_github": "連携済みの GitHub アカウント情報を読み取り（UID、ユーザー名）",
             "link_google": "連携済みの Google アカウント情報を読み取り（UID、ユーザー名）",
+            "link_clist": "連携済みの Clist.by アカウント情報を読み取り（UID、ユーザー名）",
             "cp_summary": "連携されたOJアカウント、解いた問題数の合計、最高レーティング（未完成。現在はプレースホルダーデータを返します）",
             "cp_details": "完全な提出履歴とレーティング推移データ（未完成。現在はプレースホルダーデータを返します）"
         },
@@ -417,6 +427,9 @@
             "codeforces": "Codeforces OAuth",
             "codeforces_client_id": "Codeforces Client ID",
             "codeforces_client_secret": "Codeforces Client Secret",
+            "clist": "Clist.by OAuth",
+            "clist_client_id": "Clist.by Client ID",
+            "clist_client_secret": "Clist.by Client Secret",
             "github": "GitHub OAuth",
             "github_client_id": "GitHub Client ID",
             "github_client_secret": "GitHub Client Secret",

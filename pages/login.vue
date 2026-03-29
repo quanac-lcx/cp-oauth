@@ -104,6 +104,17 @@
                         <span>{{ $t('auth.login.with_google') }}</span>
                     </span>
                 </el-button>
+                <el-button
+                    v-if="clistLoginEnabled"
+                    class="login-card__oauth-btn"
+                    :loading="clistLoading"
+                    @click="handleClistLogin"
+                >
+                    <span class="login-card__oauth-btn-content">
+                        <AppPlatformIcon platform="clist" />
+                        <span>{{ $t('auth.login.with_clist') }}</span>
+                    </span>
+                </el-button>
                 <el-button class="login-card__oauth-btn" @click="handleLuoguGuideLogin">
                     <span class="login-card__oauth-btn-content">
                         <AppPlatformIcon platform="luogu" />
@@ -177,6 +188,7 @@ const twoFactorLoading = ref(false);
 const codeforcesLoading = ref(false);
 const githubLoading = ref(false);
 const googleLoading = ref(false);
+const clistLoading = ref(false);
 const verified = computed(() => route.query.verified === 'true');
 const redirectTarget = computed(() => getSafeRedirectTarget(route.query.redirect));
 
@@ -187,6 +199,7 @@ interface PublicConfigResponse {
     codeforcesLoginEnabled?: boolean;
     githubLoginEnabled?: boolean;
     googleLoginEnabled?: boolean;
+    clistLoginEnabled?: boolean;
 }
 
 const form = reactive({
@@ -214,6 +227,7 @@ const turnstileSiteKey = computed(() => publicConfig.value?.turnstileSiteKey || 
 const codeforcesLoginEnabled = computed(() => publicConfig.value?.codeforcesLoginEnabled || false);
 const githubLoginEnabled = computed(() => publicConfig.value?.githubLoginEnabled || false);
 const googleLoginEnabled = computed(() => publicConfig.value?.googleLoginEnabled || false);
+const clistLoginEnabled = computed(() => publicConfig.value?.clistLoginEnabled || false);
 const { token: turnstileToken, el: turnstileEl } = useTurnstile(turnstileSiteKey);
 
 interface LoginResponse {
@@ -454,6 +468,27 @@ async function handleCodeforcesLogin() {
         ElMessage.error(err.data?.message || t('auth.login.error'));
     } finally {
         codeforcesLoading.value = false;
+    }
+}
+
+async function handleClistLogin() {
+    clistLoading.value = true;
+    try {
+        const result = await $fetch<{ authorizationUrl: string }>(
+            '/api/auth/thirdparty/clist/start',
+            {
+                query: {
+                    redirect: redirectTarget.value,
+                    turnstileToken: turnstileToken.value || ''
+                }
+            }
+        );
+        await navigateTo(result.authorizationUrl, { external: true });
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('auth.login.error'));
+    } finally {
+        clistLoading.value = false;
     }
 }
 

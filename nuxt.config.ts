@@ -44,7 +44,8 @@ export default defineNuxtConfig({
                 'remark-gfm',
                 'remark-rehype',
                 'rehype-stringify',
-                '@shikijs/rehype'
+                '@shikijs/rehype',
+                '@element-plus/icons-vue'
             ]
         },
         css: {

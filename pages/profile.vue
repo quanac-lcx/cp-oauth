@@ -242,6 +242,15 @@
                                 >
                             </span>
                         </el-button>
+                        <el-button :disabled="clistLinked" @click="handleBindClistOAuth">
+                            <span class="profile__bind-btn-content">
+                                <AppPlatformIcon platform="clist" />
+                                <span
+                                    >{{ $t('binding.link_account') }} —
+                                    {{ $t('binding.platforms.clist') }}</span
+                                >
+                            </span>
+                        </el-button>
                     </div>
 
                     <div v-if="luoguLinked" class="profile__luogu-login">
@@ -610,7 +619,7 @@ function isLocaleCode(value: string): value is LocaleCode {
     return localeCodes.includes(value as LocaleCode);
 }
 
-type LinkedPlatform = 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google';
+type LinkedPlatform = 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google' | 'clist';
 
 interface ProfileData {
     email?: string;
@@ -1101,7 +1110,7 @@ interface LinkedAccount {
 
 const bindings = ref<LinkedAccount[]>([]);
 const refreshingPlatform = ref('');
-const refreshablePlatforms = new Set(['luogu', 'codeforces', 'github']);
+const refreshablePlatforms = new Set(['luogu', 'codeforces', 'github', 'clist']);
 
 function canRefresh(platform: string): boolean {
     return refreshablePlatforms.has(platform);
@@ -1161,6 +1170,7 @@ const codeforcesLinked = computed(() =>
 );
 const githubLinked = computed(() => bindings.value.some(account => account.platform === 'github'));
 const googleLinked = computed(() => bindings.value.some(account => account.platform === 'google'));
+const clistLinked = computed(() => bindings.value.some(account => account.platform === 'clist'));
 const bindStep2DescKey = computed(() =>
     bindPlatform.value === 'atcoder' ? 'binding.step2_desc_atcoder' : 'binding.step2_desc'
 );
@@ -1321,6 +1331,34 @@ async function handleBindGoogleOAuth() {
     try {
         const result = await $fetch<{ authorizationUrl: string }>(
             '/api/auth/thirdparty/google/start',
+            {
+                headers: { Authorization: `Bearer ${token.value}` },
+                query: {
+                    mode: 'bind',
+                    redirect: '/profile'
+                }
+            }
+        );
+        await navigateTo(result.authorizationUrl, { external: true });
+    } catch (e: unknown) {
+        const err = e as { data?: { message?: string } };
+        ElMessage.error(err.data?.message || t('binding.verify_error'));
+    }
+}
+
+async function handleBindClistOAuth() {
+    if (clistLinked.value) {
+        ElMessage.warning(
+            t('binding.already_linked_platform', {
+                platform: t('binding.platforms.clist')
+            })
+        );
+        return;
+    }
+
+    try {
+        const result = await $fetch<{ authorizationUrl: string }>(
+            '/api/auth/thirdparty/clist/start',
             {
                 headers: { Authorization: `Bearer ${token.value}` },
                 query: {

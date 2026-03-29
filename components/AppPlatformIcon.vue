@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-    platform: 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google';
+    platform: 'luogu' | 'atcoder' | 'codeforces' | 'github' | 'google' | 'clist';
 }>();
 
 const baseUrl = computed(() => {
@@ -18,6 +18,9 @@ const iconSrc = computed(() => {
     }
     if (props.platform === 'codeforces') {
         return `${baseUrl.value}icons/codeforces-tricolor.svg`;
+    }
+    if (props.platform === 'clist') {
+        return `${baseUrl.value}icons/clist.svg`;
     }
     if (props.platform === 'github') {
         return 'https://cdn.simpleicons.org/github/24292f';

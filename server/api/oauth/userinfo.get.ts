@@ -12,7 +12,14 @@ interface OAuthPayload {
     type: string;
 }
 
-const LINK_SCOPE_PLATFORMS = ['luogu', 'atcoder', 'codeforces', 'github', 'google'] as const;
+const LINK_SCOPE_PLATFORMS = [
+    'luogu',
+    'atcoder',
+    'codeforces',
+    'github',
+    'google',
+    'clist'
+] as const;
 
 export default defineEventHandler(async event => {
     const auth = getHeader(event, 'authorization');
