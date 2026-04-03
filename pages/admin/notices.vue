@@ -78,6 +78,7 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
+import { formatCSTTime } from '~/utils/time';
 
 const { t } = useI18n();
 
@@ -116,8 +117,7 @@ function handleTabChange(name: string | number) {
 }
 
 function formatTime(raw: string): string {
-    const date = new Date(raw);
-    return date.toLocaleString();
+    return formatCSTTime(raw, { withSeconds: true, withTimezone: true });
 }
 
 async function loadNotices() {

@@ -10,7 +10,8 @@
                 <p class="user-profile__handle">@{{ user.username }}</p>
                 <p v-if="user.bio" class="user-profile__bio">{{ user.bio }}</p>
                 <p class="user-profile__joined">
-                    {{ $t('user.joined') }} {{ new Date(user.createdAt).toLocaleDateString() }}
+                    {{ $t('user.joined') }}
+                    {{ formatCSTTime(user.createdAt, { dateOnly: true, withTimezone: true }) }}
                 </p>
             </div>
         </div>
@@ -159,6 +160,7 @@
 import { ExternalLink, RefreshCw } from 'lucide-vue-next';
 import { ElMessage } from 'element-plus';
 import { renderMarkdown } from '~/utils/markdown';
+import { formatCSTTime } from '~/utils/time';
 import type { Chart } from 'chart.js';
 
 const { t } = useI18n();
@@ -390,11 +392,7 @@ async function initRatingChart() {
                         color: textColor,
                         font: { size: 10 },
                         callback(value) {
-                            const d = new Date(value as number);
-                            return d.toLocaleDateString(undefined, {
-                                year: 'numeric',
-                                month: 'short'
-                            });
+                            return formatCSTTime(value as number, { dateOnly: true });
                         },
                         maxTicksLimit: 8
                     },
@@ -443,11 +441,9 @@ async function initRatingChart() {
                                 _entry?: RatingHistoryEntry;
                             };
                             if (!raw?._entry) return '';
-                            const d = new Date(raw._entry.date);
-                            return d.toLocaleDateString(undefined, {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
+                            return formatCSTTime(raw._entry.date, {
+                                dateOnly: true,
+                                withTimezone: true
                             });
                         },
                         label(item) {

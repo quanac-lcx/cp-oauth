@@ -328,7 +328,10 @@
                         <p v-if="luoguCredentialExpiresAt" class="profile__bind-code-hint">
                             {{
                                 $t('binding.luogu_login.expires_at', {
-                                    time: new Date(luoguCredentialExpiresAt).toLocaleString()
+                                    time: formatCSTTime(luoguCredentialExpiresAt, {
+                                        withSeconds: true,
+                                        withTimezone: true
+                                    })
                                 })
                             }}
                         </p>
@@ -511,7 +514,10 @@
                                 <div class="profile__binding-info">
                                     <span class="profile__binding-platform">{{ item.name }}</span>
                                     <span class="profile__binding-uid">{{
-                                        new Date(item.createdAt).toLocaleString()
+                                        formatCSTTime(item.createdAt, {
+                                            withSeconds: true,
+                                            withTimezone: true
+                                        })
                                     }}</span>
                                 </div>
                                 <el-button
@@ -631,6 +637,7 @@
 import { ElMessage } from 'element-plus';
 import { Copy, RefreshCw } from 'lucide-vue-next';
 import { buildLoginPath } from '~/utils/auth-redirect';
+import { formatCSTTime } from '~/utils/time';
 import {
     LUOGU_LOGIN_DURATION_OPTIONS,
     type LuoguLoginDuration

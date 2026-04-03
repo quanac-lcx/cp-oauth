@@ -59,6 +59,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatCSTTime } from '~/utils/time';
+
 const { t } = useI18n();
 
 useHead({ title: () => `${t('home.title')} - CP OAuth` });
@@ -145,7 +147,7 @@ const quoteSource = computed(() => {
 });
 
 function formatNoticeTime(raw: string): string {
-    return new Date(raw).toLocaleString();
+    return formatCSTTime(raw, { withSeconds: true, withTimezone: true });
 }
 </script>
 
