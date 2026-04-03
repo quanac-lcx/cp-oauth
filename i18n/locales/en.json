@@ -3,7 +3,8 @@
         "name": "CP OAuth",
         "footer": {
             "repo": "Repository",
-            "developer": "Developer"
+            "developer": "Developer",
+            "compute_service": "Compute services provided by Rainyun"
         }
     },
     "nav": {

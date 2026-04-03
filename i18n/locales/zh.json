@@ -3,7 +3,8 @@
         "name": "CP OAuth",
         "footer": {
             "repo": "仓库",
-            "developer": "开发者"
+            "developer": "开发者",
+            "compute_service": "由雨云提供计算服务"
         }
     },
     "nav": {

@@ -20,6 +20,15 @@
                 Federico2903
             </a>
         </p>
+        <span class="app-footer__separator">·</span>
+        <a
+            class="app-footer__link"
+            href="https://www.rainyun.com/federico_"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            {{ $t('app.footer.compute_service') }}
+        </a>
     </footer>
 </template>
 

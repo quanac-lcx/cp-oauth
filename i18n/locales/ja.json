@@ -3,7 +3,8 @@
         "name": "CP OAuth",
         "footer": {
             "repo": "リポジトリ",
-            "developer": "開発者"
+            "developer": "開発者",
+            "compute_service": "計算サービスは Rainyun により提供されています"
         }
     },
     "nav": {
