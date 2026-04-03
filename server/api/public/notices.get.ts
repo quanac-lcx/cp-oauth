@@ -34,7 +34,8 @@ function sanitizeNoticeContent(content: string): string {
     return sanitizeHtml(content, {
         allowedTags: NOTICE_ALLOWED_TAGS,
         allowedAttributes: {
-            a: ['href', 'target', 'rel']
+            a: ['href', 'target', 'rel'],
+            span: ['style']
         },
         allowedSchemes: ['http', 'https', 'mailto'],
         allowedSchemesAppliedToAttributes: ['href']
