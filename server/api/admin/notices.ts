@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/prisma';
 import { requireAdmin } from '~/server/utils/admin';
+import { getRedis } from '~/server/utils/redis';
 
 interface CreateNoticeBody {
     title?: string;
@@ -43,6 +44,12 @@ export default defineEventHandler(async event => {
                 pinned: Boolean(body.pinned)
             }
         });
+
+        try {
+            await getRedis().del('public:notices');
+        } catch {
+            // Redis unavailable
+        }
 
         return { notice };
     }

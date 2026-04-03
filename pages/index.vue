@@ -14,7 +14,7 @@
                                 {{ $t('home.pinned') }}
                             </el-tag>
                         </header>
-                        <p class="home__notice-content">{{ notice.content }}</p>
+                        <div class="home__notice-content" v-html="notice.content" />
                         <p class="home__notice-time">{{ formatNoticeTime(notice.publishedAt) }}</p>
                     </article>
                 </div>
@@ -210,6 +210,12 @@ function formatNoticeTime(raw: string): string {
         font-size: 13px;
         line-height: 1.65;
         white-space: pre-wrap;
+
+        :deep(a) {
+            color: var(--el-color-primary);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
     }
 
     &__notice-time {

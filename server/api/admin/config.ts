@@ -1,6 +1,7 @@
 import { consola } from 'consola';
 import { requireAdmin } from '~/server/utils/admin';
 import { getAllConfig, setConfig, clearConfigCache } from '~/server/utils/config';
+import { getRedis } from '~/server/utils/redis';
 
 const logger = consola.withTag('admin:config');
 
@@ -45,6 +46,11 @@ export default defineEventHandler(async event => {
         }
 
         await clearConfigCache();
+        try {
+            await getRedis().del('public:config');
+        } catch {
+            // Redis unavailable
+        }
         logger.info(`Config updated by admin ${adminId}: [${updatedKeys.join(', ')}]`);
         return await getAllConfig();
     }

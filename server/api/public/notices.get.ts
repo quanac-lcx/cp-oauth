@@ -1,8 +1,45 @@
 import prisma from '~/server/utils/prisma';
 import { getRedis } from '~/server/utils/redis';
+import sanitizeHtml from 'sanitize-html';
 
 const CACHE_KEY = 'public:notices';
 const CACHE_TTL = 60; // 1 minute
+
+const NOTICE_ALLOWED_TAGS = [
+    'p',
+    'br',
+    'strong',
+    'em',
+    'b',
+    'i',
+    'u',
+    's',
+    'code',
+    'pre',
+    'blockquote',
+    'ul',
+    'ol',
+    'li',
+    'a',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'span'
+];
+
+function sanitizeNoticeContent(content: string): string {
+    return sanitizeHtml(content, {
+        allowedTags: NOTICE_ALLOWED_TAGS,
+        allowedAttributes: {
+            a: ['href', 'target', 'rel']
+        },
+        allowedSchemes: ['http', 'https', 'mailto'],
+        allowedSchemesAppliedToAttributes: ['href']
+    });
+}
 
 export default defineEventHandler(async () => {
     const redis = getRedis();
@@ -27,11 +64,16 @@ export default defineEventHandler(async () => {
         }
     });
 
+    const sanitizedNotices = notices.map(notice => ({
+        ...notice,
+        content: sanitizeNoticeContent(notice.content)
+    }));
+
     try {
-        await redis.set(CACHE_KEY, JSON.stringify(notices), 'EX', CACHE_TTL);
+        await redis.set(CACHE_KEY, JSON.stringify(sanitizedNotices), 'EX', CACHE_TTL);
     } catch {
         // Redis unavailable
     }
 
-    return notices;
+    return sanitizedNotices;
 });
