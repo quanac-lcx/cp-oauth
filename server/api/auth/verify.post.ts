@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { getUserIdFromEvent } from '~/server/utils/auth';
 import prisma from '~/server/utils/prisma';
 import { sendVerificationEmail } from '~/server/utils/mailer';
+import { isOAuthGeneratedLocalEmail } from '~/server/utils/email';
 
 function getBaseUrl(event: Parameters<typeof getRequestURL>[0]): string {
     const host = getHeader(event, 'host') || 'localhost:3000';
@@ -26,6 +27,14 @@ export default defineEventHandler(async event => {
 
     if (user.emailVerified) {
         return { success: true, alreadyVerified: true };
+    }
+
+    if (isOAuthGeneratedLocalEmail(user.email)) {
+        throw createError({
+            statusCode: 400,
+            message:
+                'OAuth-generated placeholder email cannot be verified. Please set a real email first.'
+        });
     }
 
     const emailVerifyToken = crypto.randomBytes(32).toString('hex');

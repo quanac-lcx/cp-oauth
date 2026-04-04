@@ -1,5 +1,6 @@
 import { consola } from 'consola';
 import prisma from '~/server/utils/prisma';
+import { isOAuthGeneratedLocalEmail } from '~/server/utils/email';
 
 const logger = consola.withTag('auth:verify');
 
@@ -14,6 +15,17 @@ export default defineEventHandler(async event => {
     const user = await prisma.user.findUnique({ where: { emailVerifyToken: token } });
     if (!user) {
         logger.warn('Email verification failed: invalid or expired token');
+        return sendRedirect(event, '/email-verified?status=error');
+    }
+
+    if (isOAuthGeneratedLocalEmail(user.email)) {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerifyToken: null }
+        });
+        logger.warn(
+            `Email verification blocked for placeholder email: ${user.username} (${user.id})`
+        );
         return sendRedirect(event, '/email-verified?status=error');
     }
 
