@@ -13,7 +13,7 @@
         "my_profile": "マイプロフィール",
         "settings": "設定",
         "developer": "開発者",
-        "showcase": "ショーケース",
+        "showcase": "コミュニティプロジェクト",
         "about": "ドキュメント",
         "login": "ログイン",
         "logout": "ログアウト",
@@ -479,8 +479,8 @@
         }
     },
     "showcase": {
-        "title": "ショーケース",
-        "subtitle": "CP OAuth を導入したサイトと関連コミュニティプロジェクト。",
+        "title": "コミュニティプロジェクト",
+        "subtitle": "コミュニティプロジェクトと CP OAuth を導入したサイト。",
         "sites_tab": "連携サイト",
         "projects_tab": "コミュニティプロジェクト",
         "no_sites": "連携サイトはまだありません。",

@@ -13,7 +13,7 @@
         "my_profile": "我的资料",
         "settings": "设置",
         "developer": "开发者",
-        "showcase": "展示",
+        "showcase": "社区项目",
         "about": "文档",
         "login": "登录",
         "logout": "退出登录",
@@ -480,8 +480,8 @@
         }
     },
     "showcase": {
-        "title": "展示",
-        "subtitle": "已接入 CP OAuth 的网站和相关社区项目。",
+        "title": "社区项目",
+        "subtitle": "社区项目与已接入 CP OAuth 的网站。",
         "sites_tab": "已接入网站",
         "projects_tab": "社区项目",
         "no_sites": "暂无已接入的网站。",

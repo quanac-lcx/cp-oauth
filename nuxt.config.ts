@@ -2,6 +2,11 @@ export default defineNuxtConfig({
     compatibilityDate: '2025-03-21',
     devtools: { enabled: true },
     ssr: true,
+    app: {
+        head: {
+            title: 'CP OAuth'
+        }
+    },
     modules: [
         '@nuxt/eslint',
         '@pinia/nuxt',

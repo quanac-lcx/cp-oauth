@@ -4,42 +4,11 @@
         <p class="showcase__subtitle">{{ $t('showcase.subtitle') }}</p>
 
         <el-tabs v-model="activeTab">
-            <el-tab-pane :label="$t('showcase.sites_tab')" name="sites" />
             <el-tab-pane :label="$t('showcase.projects_tab')" name="projects" />
+            <el-tab-pane :label="$t('showcase.sites_tab')" name="sites" />
         </el-tabs>
 
         <div v-loading="pending" class="showcase__content">
-            <template v-if="activeTab === 'sites'">
-                <div v-if="sites.length" class="showcase__grid">
-                    <a
-                        v-for="item in sites"
-                        :key="item.id"
-                        :href="item.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="showcase__card"
-                    >
-                        <img
-                            :src="item.iconUrl || getFavicon(item.url)"
-                            :alt="item.name"
-                            class="showcase__icon"
-                            loading="lazy"
-                            @error="handleIconError"
-                        />
-                        <div class="showcase__card-body">
-                            <h3 class="showcase__card-name">
-                                {{ item.name }}
-                                <ExternalLink :size="12" :stroke-width="1.5" />
-                            </h3>
-                            <p v-if="item.description" class="showcase__card-desc">
-                                {{ item.description }}
-                            </p>
-                        </div>
-                    </a>
-                </div>
-                <el-empty v-else :description="$t('showcase.no_sites')" :image-size="64" />
-            </template>
-
             <template v-if="activeTab === 'projects'">
                 <div v-if="projects.length" class="showcase__grid">
                     <a
@@ -70,6 +39,37 @@
                 </div>
                 <el-empty v-else :description="$t('showcase.no_projects')" :image-size="64" />
             </template>
+
+            <template v-if="activeTab === 'sites'">
+                <div v-if="sites.length" class="showcase__grid">
+                    <a
+                        v-for="item in sites"
+                        :key="item.id"
+                        :href="item.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="showcase__card"
+                    >
+                        <img
+                            :src="item.iconUrl || getFavicon(item.url)"
+                            :alt="item.name"
+                            class="showcase__icon"
+                            loading="lazy"
+                            @error="handleIconError"
+                        />
+                        <div class="showcase__card-body">
+                            <h3 class="showcase__card-name">
+                                {{ item.name }}
+                                <ExternalLink :size="12" :stroke-width="1.5" />
+                            </h3>
+                            <p v-if="item.description" class="showcase__card-desc">
+                                {{ item.description }}
+                            </p>
+                        </div>
+                    </a>
+                </div>
+                <el-empty v-else :description="$t('showcase.no_sites')" :image-size="64" />
+            </template>
         </div>
     </div>
 </template>
@@ -81,7 +81,7 @@ const { t } = useI18n();
 
 useHead({ title: () => `${t('showcase.title')} - CP OAuth` });
 
-const activeTab = ref('sites');
+const activeTab = ref('projects');
 
 interface ShowcaseItem {
     id: string;

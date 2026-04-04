@@ -13,7 +13,7 @@
         "my_profile": "My Profile",
         "settings": "Settings",
         "developer": "Developer",
-        "showcase": "Showcase",
+        "showcase": "Community Projects",
         "about": "Docs",
         "login": "Login",
         "logout": "Logout",
@@ -480,8 +480,8 @@
         }
     },
     "showcase": {
-        "title": "Showcase",
-        "subtitle": "Sites integrated with CP OAuth and related community projects.",
+        "title": "Community Projects",
+        "subtitle": "Community projects and sites integrated with CP OAuth.",
         "sites_tab": "Integrated Sites",
         "projects_tab": "Community Projects",
         "no_sites": "No integrated sites yet.",
