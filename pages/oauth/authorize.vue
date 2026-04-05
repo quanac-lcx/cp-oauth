@@ -28,6 +28,19 @@
             <el-result icon="error" :sub-title="loadError" />
         </el-card>
         <div v-else v-loading="true" class="consent__loading" />
+
+        <a
+            class="consent__rainyun-float"
+            href="https://www.rainyun.com/federico_?s=oauth"
+            aria-label="由雨云提供计算服务"
+        >
+            <img
+                class="consent__rainyun-logo"
+                src="https://www.rainyun.com/img/logo.d193755d.png"
+                alt="Rainyun"
+            />
+            <span>由雨云提供计算服务</span>
+        </a>
     </div>
 </template>
 
@@ -165,6 +178,65 @@ async function handleDecision(approved: boolean) {
 
         .el-button {
             flex: 1;
+        }
+    }
+
+    &__rainyun-float {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1000;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+        text-decoration: none;
+        color: #111111;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1;
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background-color 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+            background: rgba(255, 255, 255, 0.98);
+        }
+    }
+
+    &__rainyun-logo {
+        width: 56px;
+        height: auto;
+        border-radius: 4px;
+        object-fit: contain;
+        object-position: center;
+        display: block;
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .consent {
+        &__rainyun-float {
+            right: 12px;
+            bottom: 12px;
+            padding: 9px 12px;
+            font-size: 12px;
+            gap: 8px;
+        }
+
+        &__rainyun-logo {
+            width: 48px;
+            height: auto;
         }
     }
 }
