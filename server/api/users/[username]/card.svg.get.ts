@@ -126,25 +126,26 @@ function buildCardSvg(params: {
 }): string {
     const { username, displayName, accounts, width, colors, lang } = params;
     const strings = getStrings(lang);
-    const paddingSide = 20;
-    const paddingTop = 20;
-    const paddingBottom = 20;
-    const contentWidth = width - paddingSide * 2;
+    const paddingSide = 20; // Left/right inner padding.
+    const paddingTop = 20; // Top inner padding.
+    const paddingBottom = 20; // Bottom inner padding.
+    const contentWidth = width - paddingSide * 2; // Content width between left/right paddings.
 
     // Layout calculations
-    const headerTop = paddingTop;
-    const headerHeight = 20;
-    const headerBaselineY = headerTop + 12;
-    const dividerY = headerTop + headerHeight;
-    const titleY = dividerY + 16;
-    const titleHeight = 20;
+    const headerTop = paddingTop; // Header area top Y.
+    const headerHeight = 20; // Header area height.
+    const headerBaselineY = headerTop + 12; // Header text/logo baseline Y.
+    const dividerY = headerTop + headerHeight; // Divider line Y.
+    const titleY = dividerY + 16; // Title block top Y.
+    const titleHeight = 20; // Reserved height for title block.
     const hasDisplayName = Boolean(displayName);
-    const userSectionY = titleY + titleHeight + 4;
-    const userSectionHeight = hasDisplayName ? 20 : 0;
-    const platformStartY = userSectionY + userSectionHeight + (hasDisplayName ? 6 : 0);
-    const platformRowHeight = 28;
-    const platformsHeight = accounts.length > 0 ? accounts.length * platformRowHeight : 28;
-    const totalHeight = platformStartY + platformsHeight + paddingBottom;
+    const titleBottomGap = hasDisplayName ? 4 : 10; // Gap below title.
+    const userSectionY = titleY + titleHeight + titleBottomGap; // Subtitle (@username) top Y.
+    const userSectionHeight = hasDisplayName ? 20 : 0; // Subtitle area height when shown.
+    const platformStartY = userSectionY + userSectionHeight + (hasDisplayName ? 6 : 0); // First row top Y.
+    const platformRowHeight = 28; // Height of each platform row.
+    const platformsHeight = accounts.length > 0 ? accounts.length * platformRowHeight : 28; // List height.
+    const totalHeight = platformStartY + platformsHeight + paddingBottom; // Full card height.
 
     const logo = CP_OAUTH_LOGO.replace(/__TEXT__/g, colors.accent);
 
@@ -166,11 +167,11 @@ function buildCardSvg(params: {
         platformRows = `<text x="${paddingSide}" y="${platformStartY + 16}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="${colors.muted}">${escapeXml(strings.noPublicAccounts)}</text>`;
     } else {
         // Keep handle first character aligned across all platform rows.
-        const platformNameX = paddingSide + 22;
-        const handleX = paddingSide + 120;
+        const platformNameX = paddingSide + 22; // Platform name text start X.
+        const handleX = paddingSide + 120; // Platform handle text start X (fixed column).
 
         accounts.forEach((acc, i) => {
-            const y = platformStartY + i * platformRowHeight;
+            const y = platformStartY + i * platformRowHeight; // Current row top Y.
             const iconUri = getIconDataUri(acc.platform);
             const name = PLATFORM_NAMES[acc.platform] || acc.platform;
             const handle = acc.platformUsername || acc.platformUid;
