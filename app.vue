@@ -25,7 +25,7 @@ useHead({
             key: 'cloudflare-web-analytics',
             defer: true,
             src: 'https://static.cloudflareinsights.com/beacon.min.js',
-            'data-cf-beacon': '{"token": "d364edfab2ec4133b3f98feb38d9935f"}'
+            'data-cf-beacon': '{"token": "c2d855fe9c6947b29c73141ce9d31d8b"}'
         }
     ]
 });
