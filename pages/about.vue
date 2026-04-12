@@ -197,7 +197,18 @@ const userinfo = await fetch('/api/oauth/userinfo', {
 
 const data = await userinfo.json()
 // Response varies based on granted scopes:
-// { sub, username, display_name, avatar_url, bio, cp_summary, cp_details }
+// {
+//   sub,
+//   username,
+//   display_name,
+//   avatar_url,
+//   bio,
+//   email,
+//   email_verified,
+//   linked_accounts,
+//   cp_summary,
+//   cp_details
+// }
 \`\`\``;
 
 const pkceSnippet = `\`\`\`javascript
